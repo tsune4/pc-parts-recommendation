@@ -29,6 +29,55 @@ const PARTS_DATA = {
       "cores": "8コア",
       "frequency": "4.5GHz",
       "socket": "AM5"
+    },
+    {
+      "name": "AMD Ryzen 7 9700X",
+      "price": 45000,
+      "cores": "8コア",
+      "frequency": "3.8GHz",
+      "socket": "AM5"
+    },
+    {
+      "name": "AMD Ryzen 7 9800X3D",
+      "price": 75000,
+      "cores": "8コア",
+      "frequency": "4.7GHz",
+      "socket": "AM5"
+    },
+    {
+      "name": "AMD Ryzen 7 7800X3D",
+      "price": 53000,
+      "cores": "8コア",
+      "frequency": "4.2GHz",
+      "socket": "AM5"
+    },
+    {
+      "name": "AMD Ryzen 9 9950X3D",
+      "price": 110000,
+      "cores": "16コア",
+      "frequency": "4.3GHz",
+      "socket": "AM5"
+    },
+    {
+      "name": "Intel Core Ultra 7 265K",
+      "price": 47000,
+      "cores": "20コア",
+      "frequency": "3.9GHz",
+      "socket": "LGA1851"
+    },
+    {
+      "name": "AMD Ryzen 7 5700X",
+      "price": 21000,
+      "cores": "8コア",
+      "frequency": "3.4GHz",
+      "socket": "AM4"
+    },
+    {
+      "name": "AMD Ryzen 9 9950X",
+      "price": 77000,
+      "cores": "16コア",
+      "frequency": "4.3GHz",
+      "socket": "AM5"
     }
   ],
   "motherboard": [
@@ -129,6 +178,13 @@ const PARTS_DATA = {
     }
   ],
   "gpu": [
+    {
+      "name": "GeForce RTX 5090",
+      "price": 380000,
+      "gpu": "GeForce RTX 5090",
+      "memory": "32GB GDDR7",
+      "interface": "PCI Express 5.0 x16"
+    },
     {
       "name": "GeForce RTX 5080",
       "price": 160000,
