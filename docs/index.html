@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC自作パーツ推奨システム</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <div class="language-selector">
+                    <label for="language-selector">Language:</label>
+                    <select id="language-selector">
+                        <option value="ja">日本語</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+            </div>
+            <h1>PC自作パーツ推奨システム</h1>
+            <p>予算とスペック条件に応じて最適なPCパーツ構成を提案します</p>
+        </header>
+
+        <main>
+            <!-- 入力フォーム -->
+            <section class="input-section">
+                <h2>条件設定</h2>
+                <form id="recommendation-form">
+                    <div class="form-group">
+                        <label for="budget">総予算（円）</label>
+                        <input type="number" id="budget" name="budget" min="50000" max="1000000" step="10000" value="150000" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ram">希望RAM容量</label>
+                        <select id="ram" name="ram" required>
+                            <option value="8GB">8GB</option>
+                            <option value="16GB" selected>16GB</option>
+                            <option value="32GB">32GB</option>
+                            <option value="64GB">64GB</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="storage-capacity">ストレージ容量</label>
+                        <select id="storage-capacity" name="storage-capacity" required>
+                            <option value="500GB">500GB</option>
+                            <option value="1TB" selected>1TB</option>
+                            <option value="2TB">2TB</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="storage-type">ストレージタイプ</label>
+                        <select id="storage-type" name="storage-type" required>
+                            <option value="ssd" selected>SSD</option>
+                            <option value="hdd">HDD</option>
+                            <option value="hybrid">SSD + HDD</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gpu-brand">GPU メーカー</label>
+                        <select id="gpu-brand" name="gpu-brand" required>
+                            <option value="any">指定なし</option>
+                            <option value="nvidia" selected>NVIDIA</option>
+                            <option value="amd">AMD</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="usage">用途</label>
+                        <select id="usage" name="usage" required>
+                            <option value="office">オフィス作業</option>
+                            <option value="development">プログラミング・開発</option>
+                            <option value="gaming" selected>ゲーミング</option>
+                            <option value="creative">クリエイティブ作業</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="submit-btn">構成を提案</button>
+                </form>
+            </section>
+
+            <!-- ローディング表示 -->
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>パーツ構成を計算中...</p>
+            </div>
+
+            <!-- 結果表示 -->
+            <section id="results-section" class="results-section hidden">
+                <h2>推奨パーツ構成</h2>
+                
+                <div class="budget-summary">
+                    <div class="budget-info">
+                        <span class="label">総予算:</span>
+                        <span id="total-budget" class="value">¥0</span>
+                    </div>
+                    <div class="price-info">
+                        <span class="label">合計金額:</span>
+                        <span id="total-price" class="value">¥0</span>
+                    </div>
+                    <div class="status-info">
+                        <span id="budget-status" class="status"></span>
+                    </div>
+                </div>
+
+                <div class="parts-table-container">
+                    <table class="parts-table">
+                        <thead>
+                            <tr>
+                                <th>パーツ</th>
+                                <th>商品名</th>
+                                <th>価格</th>
+                                <th>主要スペック</th>
+                            </tr>
+                        </thead>
+                        <tbody id="parts-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- エラー表示 -->
+            <div id="error-message" class="error-message hidden">
+                <p>エラーが発生しました。しばらく時間をおいて再度お試しください。</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="parts-data.js"></script>
+    <script src="translations.js"></script>
+    <script src="pc-recommender.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
