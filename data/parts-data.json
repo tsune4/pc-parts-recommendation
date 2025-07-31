@@ -1,0 +1,258 @@
+{
+  "lastUpdated": "2025-01-31",
+  "cpu": [
+    {
+      "name": "Intel Core i5-13400F",
+      "price": 29800,
+      "cores": "10コア",
+      "frequency": "2.5GHz",
+      "socket": "LGA1700"
+    },
+    {
+      "name": "AMD Ryzen 5 7600X",
+      "price": 31500,
+      "cores": "6コア",
+      "frequency": "4.7GHz",
+      "socket": "AM5"
+    },
+    {
+      "name": "Intel Core i7-13700F",
+      "price": 47800,
+      "cores": "16コア",
+      "frequency": "2.1GHz",
+      "socket": "LGA1700"
+    },
+    {
+      "name": "AMD Ryzen 7 7700X",
+      "price": 51200,
+      "cores": "8コア",
+      "frequency": "4.5GHz",
+      "socket": "AM5"
+    }
+  ],
+  "motherboard": [
+    {
+      "name": "MSI PRO B760M-A WiFi DDR4",
+      "price": 14800,
+      "socket": "LGA1700",
+      "chipset": "B760",
+      "formFactor": "mATX"
+    },
+    {
+      "name": "ASUS PRIME X670E-PRO WIFI",
+      "price": 27900,
+      "socket": "AM5",
+      "chipset": "X670E",
+      "formFactor": "ATX"
+    },
+    {
+      "name": "GIGABYTE Z790 AORUS ELITE AX",
+      "price": 34500,
+      "socket": "LGA1700",
+      "chipset": "Z790",
+      "formFactor": "ATX"
+    },
+    {
+      "name": "MSI MAG B650 TOMAHAWK WIFI",
+      "price": 23800,
+      "socket": "AM5",
+      "chipset": "B650",
+      "formFactor": "ATX"
+    }
+  ],
+  "memory": [
+    {
+      "name": "Corsair Vengeance LPX 16GB DDR4",
+      "price": 7800,
+      "capacity": "16GB",
+      "speed": "DDR4-3200",
+      "type": "DDR4"
+    },
+    {
+      "name": "G.Skill Trident Z5 32GB DDR5",
+      "price": 17500,
+      "capacity": "32GB",
+      "speed": "DDR5-5600",
+      "type": "DDR5"
+    },
+    {
+      "name": "Crucial CT2K8G4DFS832A 16GB DDR4",
+      "price": 6200,
+      "capacity": "16GB",
+      "speed": "DDR4-3200",
+      "type": "DDR4"
+    },
+    {
+      "name": "Kingston FURY Beast 16GB DDR4",
+      "price": 6800,
+      "capacity": "16GB",
+      "speed": "DDR4-3200",
+      "type": "DDR4"
+    }
+  ],
+  "storage": [
+    {
+      "name": "Samsung 980 PRO 1TB NVMe",
+      "price": 14200,
+      "capacity": "1TB",
+      "interface": "NVMe",
+      "formFactor": "M.2"
+    },
+    {
+      "name": "WD Blue SN570 500GB NVMe",
+      "price": 6800,
+      "capacity": "500GB",
+      "interface": "NVMe",
+      "formFactor": "M.2"
+    },
+    {
+      "name": "Crucial MX4 1TB SSD",
+      "price": 9800,
+      "capacity": "1TB",
+      "interface": "SATA",
+      "formFactor": "2.5\""
+    },
+    {
+      "name": "Samsung 990 EVO 1TB NVMe",
+      "price": 12800,
+      "capacity": "1TB",
+      "interface": "NVMe",
+      "formFactor": "M.2"
+    },
+    {
+      "name": "WD Black SN850X 2TB NVMe",
+      "price": 25800,
+      "capacity": "2TB",
+      "interface": "NVMe",
+      "formFactor": "M.2"
+    }
+  ],
+  "gpu": [
+    {
+      "name": "GeForce RTX 5080",
+      "price": 160000,
+      "gpu": "GeForce RTX 5080",
+      "memory": "16GB GDDR7",
+      "interface": "PCI Express 5.0 x16"
+    },
+    {
+      "name": "GeForce RTX 5070 Ti",
+      "price": 130000,
+      "gpu": "GeForce RTX 5070 Ti",
+      "memory": "16GB GDDR7",
+      "interface": "PCI Express 5.0 x16"
+    },
+    {
+      "name": "GeForce RTX 5070",
+      "price": 87000,
+      "gpu": "GeForce RTX 5070",
+      "memory": "12GB GDDR7",
+      "interface": "PCI Express 5.0 x16"
+    },
+    {
+      "name": "GeForce RTX 5060 Ti (16GB)",
+      "price": 74000,
+      "gpu": "GeForce RTX 5060 Ti",
+      "memory": "16GB GDDR7",
+      "interface": "PCI Express 5.0 x16"
+    },
+    {
+      "name": "GeForce RTX 5060 Ti (8GB)",
+      "price": 58000,
+      "gpu": "GeForce RTX 5060 Ti",
+      "memory": "8GB GDDR7",
+      "interface": "PCI Express 5.0 x16"
+    },
+    {
+      "name": "GeForce RTX 5060",
+      "price": 47000,
+      "gpu": "GeForce RTX 5060",
+      "memory": "8GB GDDR7",
+      "interface": "PCI Express 5.0 x16"
+    },
+    {
+      "name": "Radeon RX 9070 XT",
+      "price": 110000,
+      "gpu": "Radeon RX 9070 XT",
+      "memory": "16GB GDDR6",
+      "interface": "PCI Express 5.0 x16"
+    },
+    {
+      "name": "Radeon RX 9070",
+      "price": 100000,
+      "gpu": "Radeon RX 9070",
+      "memory": "16GB GDDR6",
+      "interface": "PCI Express 5.0 x16"
+    },
+    {
+      "name": "Radeon RX 9060 XT (16GB)",
+      "price": 60000,
+      "gpu": "Radeon RX 9060 XT",
+      "memory": "16GB GDDR6",
+      "interface": "PCI Express 5.0 x16"
+    },
+    {
+      "name": "Radeon RX 9060 XT (8GB)",
+      "price": 47000,
+      "gpu": "Radeon RX 9060 XT",
+      "memory": "8GB GDDR6",
+      "interface": "PCI Express 5.0 x16"
+    }
+  ],
+  "psu": [
+    {
+      "name": "Corsair RM750e 80PLUS Gold",
+      "price": 11800,
+      "wattage": "750W",
+      "efficiency": "80+ Gold",
+      "modular": "Full"
+    },
+    {
+      "name": "Seasonic Focus GX-650 80PLUS Gold",
+      "price": 9800,
+      "wattage": "650W",
+      "efficiency": "80+ Gold",
+      "modular": "Full"
+    },
+    {
+      "name": "Antec NeoECO Gold NE650G",
+      "price": 8500,
+      "wattage": "650W",
+      "efficiency": "80+ Gold",
+      "modular": "Semi"
+    },
+    {
+      "name": "Corsair CV650 80PLUS Bronze",
+      "price": 6800,
+      "wattage": "650W",
+      "efficiency": "80+ Bronze",
+      "modular": "Non"
+    }
+  ],
+  "case": [
+    {
+      "name": "Fractal Design Core 1000",
+      "price": 7800,
+      "formFactor": "mATX",
+      "size": "Mini Tower"
+    },
+    {
+      "name": "NZXT H510",
+      "price": 11800,
+      "formFactor": "ATX",
+      "size": "Mid Tower"
+    },
+    {
+      "name": "Cooler Master MasterBox Q300L",
+      "price": 5800,
+      "formFactor": "mATX",
+      "size": "Mini Tower"
+    },
+    {
+      "name": "Corsair 4000D Airflow",
+      "price": 12500,
+      "formFactor": "ATX",
+      "size": "Mid Tower"
+    }
+  ]
+}
