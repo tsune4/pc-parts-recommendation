@@ -43,6 +43,7 @@ const translations = {
         
         // Part categories
         cpu: "CPU",
+        cooler: "CPUクーラー",
         motherboard: "マザーボード",
         memory: "メモリ",
         storage: "ストレージ",
@@ -104,6 +105,7 @@ const translations = {
         
         // Part categories
         cpu: "CPU",
+        cooler: "CPU Cooler",
         motherboard: "Motherboard",
         memory: "Memory",
         storage: "Storage",

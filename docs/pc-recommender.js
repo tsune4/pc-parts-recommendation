@@ -151,6 +151,7 @@ function optimizeBudgetUsage(currentRecommendations, allParts, remainingBudget, 
     const upgradeOrder = [
         { part: 'gpu', parts: allParts.gpu, currentPrice: optimized.gpu?.price || 0 },
         { part: 'cpu', parts: allParts.cpu, currentPrice: optimized.cpu?.price || 0 },
+        { part: 'cooler', parts: allParts.cooler, currentPrice: optimized.cooler?.price || 0 },
         { part: 'memory', parts: allParts.memory, currentPrice: optimized.memory?.price || 0 },
         { part: 'storage', parts: allParts.storage, currentPrice: optimized.storage?.price || 0 },
         { part: 'motherboard', parts: allParts.motherboard, currentPrice: optimized.motherboard?.price || 0 }
@@ -206,13 +207,14 @@ function getRecommendations(requirements) {
         const cpuBudget = budget * usageRec.cpuWeight;
         const gpuBudget = budget * usageRec.gpuWeight;
         const remainingBudget = budget - cpuBudget - gpuBudget;
-        const otherPartsBudget = remainingBudget / 5;
+        const otherPartsBudget = remainingBudget / 6;
         
         console.log(`Budget allocation - CPU: ¥${Math.round(cpuBudget)}, GPU: ¥${Math.round(gpuBudget)}, Others: ¥${Math.round(otherPartsBudget)} each`);
         
         // パーツ選択
         let recommendations = {
             cpu: selectBestPart(partsData.cpu, cpuBudget),
+            cooler: selectBestPart(partsData.cooler, otherPartsBudget),
             motherboard: selectBestPart(partsData.motherboard, otherPartsBudget),
             memory: selectMemory(partsData.memory, ram, otherPartsBudget),
             storage: selectStorage(partsData.storage, storage, otherPartsBudget),

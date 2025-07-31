@@ -11,6 +11,7 @@ const budgetStatusElement = document.getElementById('budget-status');
 // パーツカテゴリーの翻訳対応
 const PART_CATEGORIES_TRANSLATIONS = {
     cpu: 'cpu',
+    cooler: 'cooler',
     motherboard: 'motherboard',
     memory: 'memory',
     storage: 'storage',
@@ -112,6 +113,10 @@ function formatSpecs(category, part) {
             if (part.cores) specs.push(`${part.cores}`);
             if (part.frequency) specs.push(part.frequency);
             if (part.socket) specs.push(part.socket);
+            break;
+            
+        case 'cooler':
+            if (part.type) specs.push(part.type);
             break;
             
         case 'motherboard':

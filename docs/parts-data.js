@@ -80,6 +80,108 @@ const PARTS_DATA = {
       "socket": "AM5"
     }
   ],
+  "cooler": [
+    {
+      "name": "DEEPCOOL AK400 R-AK400-BKNNMN-G-1",
+      "price": 3199,
+      "type": "サイドフロー型"
+    },
+    {
+      "name": "サイズ MUGEN6 BLACK EDITION SCMG-6000DBE",
+      "price": 5518,
+      "type": "サイドフロー型"
+    },
+    {
+      "name": "ID-COOLING FROZN-A620-PRO-SE [ブラック]",
+      "price": 4980,
+      "type": "サイドフロー型"
+    },
+    {
+      "name": "サイズ 虎徹 MARK3 SCKTT-3000",
+      "price": 2980,
+      "type": "サイドフロー型"
+    },
+    {
+      "name": "DEEPCOOL AK620 R-AK620-BKNNMT-G",
+      "price": 7520,
+      "type": "サイドフロー型"
+    },
+    {
+      "name": "ARCTIC Liquid Freezer III 360 ACFRE00136A",
+      "price": 16980,
+      "type": "水冷型"
+    },
+    {
+      "name": "COOLER MASTER Hyper 612 APEX MAP-T6PN-225PK-R1 [Black]",
+      "price": 10544,
+      "type": "サイドフロー型"
+    },
+    {
+      "name": "DEEPCOOL LE360 WH V2 R-LE360-WHAMMN-G-2 [ホワイト]",
+      "price": 10979,
+      "type": "水冷型"
+    },
+    {
+      "name": "Corsair iCUE LINK TITAN 360 RX RGB LCD White CW-9061026-WW [ホワイト]",
+      "price": 26154,
+      "type": "水冷型"
+    },
+    {
+      "name": "Corsair NAUTILUS 240 RS CW-9060088-WW",
+      "price": 10950,
+      "type": "水冷型"
+    },
+    {
+      "name": "DEEPCOOL LE360 V2 R-LE360-BKAMMC-G-2 [ブラック]",
+      "price": 10979,
+      "type": "水冷型"
+    },
+    {
+      "name": "Corsair NAUTILUS 360 RS CW-9060089-WW",
+      "price": 13622,
+      "type": "水冷型"
+    },
+    {
+      "name": "PCCOOLER CPS DT360-ARGB-BK [BLACK]",
+      "price": 24812,
+      "type": "水冷型"
+    },
+    {
+      "name": "PCCOOLER CPS RT400-BK [ブラック]",
+      "price": 2771,
+      "type": "サイドフロー型"
+    },
+    {
+      "name": "ARCTIC Liquid Freezer III 280 ACFRE00135A",
+      "price": 14980,
+      "type": "水冷型"
+    },
+    {
+      "name": "ARCTIC Freezer 36 ACFRE00123A [Black]",
+      "price": 4258,
+      "type": "サイドフロー型"
+    },
+    {
+      "name": "Corsair NAUTILUS 360 RS ARGB White CW-9060095-WW [ホワイト]",
+      "price": 13970,
+      "type": "水冷型"
+    },
+    {
+      "name": "ID-COOLING IS-40X-V3 [ブラック]",
+      "price": 3150,
+      "type": "トップフロー型"
+    },
+    {
+      "name": "DEEPCOOL ASSASSIN IV VC VISION R-ASN4-BKNVMD-G [ブラック]",
+      "price": 18978,
+      "type": "サイドフロー型"
+    },
+    {
+      "name": "DEEPCOOL LQ360 ULTRA R-LQ360-BKLSMWP-G-U",
+      "price": 21021,
+      "type": "水冷型"
+    }
+  ],
   "motherboard": [
     {
       "name": "MSI PRO B760M-A WiFi DDR4",
@@ -258,32 +360,144 @@ const PARTS_DATA = {
   ],
   "psu": [
     {
-      "name": "Corsair RM750e 80PLUS Gold",
-      "price": 11800,
+      "name": "Thermaltake TOUGHPOWER GT/0850W ATX3.1",
+      "price": 12051,
+      "wattage": "850W",
+      "efficiency": "GOLD",
+      "modular": "Full"
+    },
+    {
+      "name": "玄人志向 KRPW-GA750W/90+",
+      "price": 9673,
       "wattage": "750W",
-      "efficiency": "80+ Gold",
+      "efficiency": "GOLD",
       "modular": "Full"
     },
     {
-      "name": "Seasonic Focus GX-650 80PLUS Gold",
-      "price": 9800,
-      "wattage": "650W",
-      "efficiency": "80+ Gold",
+      "name": "MSI MAG A750GL PCIE5",
+      "price": 10980,
+      "wattage": "750W",
+      "efficiency": "GOLD",
       "modular": "Full"
     },
     {
-      "name": "Antec NeoECO Gold NE650G",
-      "price": 8500,
+      "name": "Corsair RM850x 2024 Cybenetics Gold ATX3.1",
+      "price": 19980,
+      "wattage": "850W",
+      "efficiency": "GOLD",
+      "modular": "Full"
+    },
+    {
+      "name": "玄人志向 KRPW-BK650W/85+",
+      "price": 7300,
       "wattage": "650W",
-      "efficiency": "80+ Gold",
+      "efficiency": "BRONZE",
       "modular": "Semi"
     },
     {
-      "name": "Corsair CV650 80PLUS Bronze",
-      "price": 6800,
-      "wattage": "650W",
-      "efficiency": "80+ Bronze",
+      "name": "COOLER MASTER MWE Gold 850 V3 ATX 3.1 White Edition Non-Modular",
+      "price": 12187,
+      "wattage": "850W",
+      "efficiency": "GOLD",
       "modular": "Non"
+    },
+    {
+      "name": "COUGAR ATLAS 650",
+      "price": 5980,
+      "wattage": "650W",
+      "efficiency": "BRONZE",
+      "modular": "Non"
+    },
+    {
+      "name": "MSI MAG A650BNL",
+      "price": 6480,
+      "wattage": "650W",
+      "efficiency": "BRONZE",
+      "modular": "Non"
+    },
+    {
+      "name": "Corsair RM1000x 2024 Cybenetics Gold ATX3.1",
+      "price": 25880,
+      "wattage": "1000W",
+      "efficiency": "GOLD",
+      "modular": "Full"
+    },
+    {
+      "name": "Corsair RM750x 2024 Cybenetics Gold ATX3.1",
+      "price": 15980,
+      "wattage": "750W",
+      "efficiency": "GOLD",
+      "modular": "Full"
+    },
+    {
+      "name": "MSI MAG A850GL PCIE5",
+      "price": 13570,
+      "wattage": "850W",
+      "efficiency": "GOLD",
+      "modular": "Full"
+    },
+    {
+      "name": "Corsair RM1000e 2025",
+      "price": 21756,
+      "wattage": "1000W",
+      "efficiency": "GOLD",
+      "modular": "Full"
+    },
+    {
+      "name": "ASRock Steel Legend SL-650G",
+      "price": 11980,
+      "wattage": "650W",
+      "efficiency": "GOLD",
+      "modular": "Full"
+    },
+    {
+      "name": "Corsair SF850 Platinum ATX3.1",
+      "price": 26145,
+      "wattage": "850W",
+      "efficiency": "PLATINUM",
+      "modular": "Full"
+    },
+    {
+      "name": "Thermaltake TOUGHPOWER PF3 1200W ATX3.1 PLATINUM",
+      "price": 27828,
+      "wattage": "1200W",
+      "efficiency": "PLATINUM",
+      "modular": "Full"
+    },
+    {
+      "name": "Corsair RM850e 2025",
+      "price": 15332,
+      "wattage": "850W",
+      "efficiency": "GOLD",
+      "modular": "Full"
+    },
+    {
+      "name": "ASRock Steel Legend SL-850G [ブラック]",
+      "price": 14980,
+      "wattage": "850W",
+      "efficiency": "GOLD",
+      "modular": "Full"
+    },
+    {
+      "name": "ASRock Steel Legend SL-850GW [ホワイト]",
+      "price": 15980,
+      "wattage": "850W",
+      "efficiency": "GOLD",
+      "modular": "Full"
+    },
+    {
+      "name": "玄人志向 KRPW-L5-600W/80+/REV2.0",
+      "price": 5600,
+      "wattage": "600W",
+      "efficiency": "STANDARD",
+      "modular": "Non"
+    },
+    {
+      "name": "ASRock Steel Legend SL-750G [ブラック]",
+      "price": 13480,
+      "wattage": "750W",
+      "efficiency": "GOLD",
+      "modular": "Full"
     }
   ],
   "case": [
