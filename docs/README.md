@@ -1,6 +1,6 @@
 # PC自作パーツ推奨システム / PC Build Parts Recommendation System
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://yourusername.github.io/pc-parts-recommendation/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://tsune4.github.io/pc-parts-recommendation/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ## 🖥️ 概要 / Overview
@@ -58,7 +58,7 @@ A web application that suggests optimal PC part configurations based on budget a
 
 ```bash
 # リポジトリをクローン
-git clone https://github.com/yourusername/pc-parts-recommendation.git
+git clone https://github.com/tsune4/pc-parts-recommendation.git
 
 # docsフォルダに移動
 cd pc-parts-recommendation/docs
@@ -95,7 +95,7 @@ This project is licensed under the MIT License.
 
 ## 📞 サポート / Support
 
-問題や要望がある場合は、[Issues](https://github.com/yourusername/pc-parts-recommendation/issues)でお知らせください。
+問題や要望がある場合は、[Issues](https://github.com/tsune4/pc-parts-recommendation/issues)でお知らせください。
 
 ---
 

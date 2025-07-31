@@ -1,6 +1,6 @@
 # PC自作パーツ推奨システム / PC Build Parts Recommendation System
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://yourusername.github.io/pc-parts-recommendation/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://tsune4.github.io/pc-parts-recommendation/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ## 🖥️ 概要 / Overview
@@ -8,7 +8,7 @@
 予算とスペック条件に応じて最適なPCパーツ構成を提案するWebアプリケーションです。  
 A web application that suggests optimal PC part configurations based on budget and specification requirements.
 
-**🌐 GitHub Pages版: [https://yourusername.github.io/pc-parts-recommendation/](https://yourusername.github.io/pc-parts-recommendation/)**
+**🌐 GitHub Pages版: [https://tsune4.github.io/pc-parts-recommendation/](https://tsune4.github.io/pc-parts-recommendation/)**
 
 ## ✨ 機能 / Features
 
