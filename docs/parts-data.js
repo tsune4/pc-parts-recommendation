@@ -244,13 +244,6 @@ const PARTS_DATA = {
   ],
   "storage": [
     {
-      "name": "Samsung 980 PRO 1TB NVMe",
-      "price": 14200,
-      "capacity": "1TB",
-      "interface": "NVMe",
-      "formFactor": "M.2"
-    },
-    {
       "name": "WD Blue SN570 500GB NVMe",
       "price": 6800,
       "capacity": "500GB",
@@ -263,13 +256,6 @@ const PARTS_DATA = {
       "capacity": "1TB",
       "interface": "SATA",
       "formFactor": "2.5\""
-    },
-    {
-      "name": "Samsung 990 EVO 1TB NVMe",
-      "price": 12800,
-      "capacity": "1TB",
-      "interface": "NVMe",
-      "formFactor": "M.2"
     },
     {
       "name": "WD Black SN850X 2TB NVMe",

@@ -29,14 +29,12 @@ form.addEventListener('submit', async (e) => {
     const budget = parseInt(formData.get('budget'));
     const ram = formData.get('ram');
     const storageCapacity = formData.get('storage-capacity');
-    const storageType = formData.get('storage-type');
     const gpuBrand = formData.get('gpu-brand');
     const usage = formData.get('usage');
     
     // ストレージ設定のオブジェクト作成
     const storage = {
-        capacity: storageCapacity,
-        type: storageType
+        capacity: storageCapacity
     };
     
     // リクエストデータ
