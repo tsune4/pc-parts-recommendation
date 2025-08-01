@@ -10,6 +10,7 @@ const budgetStatusElement = document.getElementById('budget-status');
 
 // パーツカテゴリーの翻訳対応
 const PART_CATEGORIES_TRANSLATIONS = {
+    os: 'os',
     cpu: 'cpu',
     cooler: 'cooler',
     motherboard: 'motherboard',
@@ -29,8 +30,10 @@ form.addEventListener('submit', async (e) => {
     const budget = parseInt(formData.get('budget'));
     const ram = formData.get('ram');
     const storageCapacity = formData.get('storage-capacity');
+    const cpuBrand = formData.get('cpu-brand');
     const gpuBrand = formData.get('gpu-brand');
     const usage = formData.get('usage');
+    const includeOS = formData.get('include-os') === 'on';
     
     // ストレージ設定のオブジェクト作成
     const storage = {
@@ -42,8 +45,10 @@ form.addEventListener('submit', async (e) => {
         budget,
         ram,
         storage,
+        cpuBrand,
         gpuBrand,
-        usage
+        usage,
+        includeOS
     };
     
     try {
@@ -102,19 +107,31 @@ function formatPrice(price) {
     }).format(price);
 }
 
-// スペック情報のフォーマット
+// スペック情報のフォーマット（翻訳対応）
 function formatSpecs(category, part) {
     const specs = [];
     
     switch (category) {
         case 'cpu':
-            if (part.cores) specs.push(`${part.cores}`);
+            if (part.cores) {
+                const coreCount = part.cores.split('コア')[0];
+                const threadCount = part.cores.split('スレッド')[0].split('コア')[1];
+                specs.push(`${coreCount} ${t('cores')} ${threadCount} ${t('threads')}`);
+            }
             if (part.frequency) specs.push(part.frequency);
             if (part.socket) specs.push(part.socket);
             break;
             
         case 'cooler':
-            if (part.type) specs.push(part.type);
+            if (part.type) {
+                if (part.type.includes('サイドフロー')) {
+                    specs.push(t('cooler_type_side'));
+                } else if (part.type.includes('水冷')) {
+                    specs.push(t('cooler_type_water'));
+                } else {
+                    specs.push(part.type);
+                }
+            }
             break;
             
         case 'motherboard':
@@ -137,14 +154,22 @@ function formatSpecs(category, part) {
             
         case 'gpu':
             if (part.gpu) specs.push(part.gpu);
-            if (part.memory) specs.push(`VRAM: ${part.memory}`);
+            if (part.memory) specs.push(`${t('vram')}: ${part.memory}`);
             if (part.interface) specs.push(part.interface);
             break;
             
         case 'psu':
             if (part.wattage) specs.push(part.wattage);
             if (part.efficiency) specs.push(part.efficiency);
-            if (part.modular) specs.push(`${part.modular}モジュラー`);
+            if (part.modular) {
+                if (part.modular.toLowerCase().includes('full')) {
+                    specs.push(t('psu_modular_full'));
+                } else if (part.modular.toLowerCase().includes('semi')) {
+                    specs.push(t('psu_modular_semi'));
+                } else {
+                    specs.push(t('psu_modular_non'));
+                }
+            }
             break;
             
         case 'case':
@@ -171,9 +196,19 @@ function displayResults(data) {
     // パーツテーブルのクリア
     partsTableBody.innerHTML = '';
     
-    // パーツ情報の表示
-    Object.entries(recommendations).forEach(([category, part]) => {
-        if (part) {
+    // パーツ情報の表示（OSを一番上に表示）
+    const partEntries = Object.entries(recommendations);
+    
+    // OSが含まれている場合は最初に表示
+    const osEntry = partEntries.find(([category]) => category === 'os');
+    if (osEntry && osEntry[1]) {
+        const row = createPartRow(osEntry[0], osEntry[1]);
+        partsTableBody.appendChild(row);
+    }
+    
+    // OS以外のパーツを表示
+    partEntries.forEach(([category, part]) => {
+        if (part && category !== 'os') {
             const row = createPartRow(category, part);
             partsTableBody.appendChild(row);
         }
@@ -214,22 +249,25 @@ function createPartRow(category, part) {
     return row;
 }
 
-// 初期化
-document.addEventListener('DOMContentLoaded', () => {
-    // 言語切り替えセレクターのイベントリスナー
+// --- Initialization ---
+
+// This function sets up the entire application once the DOM is ready.
+function initializeApp() {
+    // Set the initial language from localStorage or default to 'ja'
+    const savedLanguage = localStorage.getItem('preferredLanguage') || 'ja';
+    changeLanguage(savedLanguage); // This will set currentLanguage and call updatePageText()
+
+    // Set up the language selector event listener
     const languageSelector = document.getElementById('language-selector');
     if (languageSelector) {
-        // 保存された言語設定を適用
-        languageSelector.value = currentLanguage;
-        
-        // 言語変更イベント
+        languageSelector.value = currentLanguage; // Reflect the current language in the dropdown
         languageSelector.addEventListener('change', (e) => {
             changeLanguage(e.target.value);
         });
     }
-    
-    // 初期言語でページを更新
-    updatePageText();
-    
-    console.log('PC自作パーツ推奨システム（GitHub Pages版）が初期化されました');
-});
+
+    console.log('PC Build Recommendation System Initialized.');
+}
+
+// Wait for the DOM to be fully loaded before running the app setup.
+document.addEventListener('DOMContentLoaded', initializeApp);

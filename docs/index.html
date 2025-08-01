@@ -45,9 +45,18 @@
                     <div class="form-group">
                         <label for="storage-capacity">ストレージ容量</label>
                         <select id="storage-capacity" name="storage-capacity" required>
-                            <option value="500GB">500GB</option>
                             <option value="1TB" selected>1TB</option>
                             <option value="2TB">2TB</option>
+                            <option value="4TB">4TB</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="cpu-brand" data-translate="cpuBrand">CPU メーカー</label>
+                        <select id="cpu-brand" name="cpu-brand" required>
+                            <option value="any" data-translate="cpuBrandAny">指定なし</option>
+                            <option value="intel" data-translate="cpuBrandIntel">Intel</option>
+                            <option value="amd" data-translate="cpuBrandAmd" selected>AMD</option>
                         </select>
                     </div>
 
@@ -68,6 +77,13 @@
                             <option value="gaming" selected>ゲーミング</option>
                             <option value="creative">クリエイティブ作業</option>
                         </select>
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="include-os" name="include-os" checked>
+                            <span data-translate="includeOS">OSの価格を含める</span>
+                        </label>
                     </div>
 
                     <button type="submit" class="submit-btn">構成を提案</button>
@@ -121,9 +137,9 @@
         </main>
     </div>
 
-    <script src="parts-data.js"></script>
-    <script src="translations.js"></script>
-    <script src="pc-recommender.js"></script>
-    <script src="script.js"></script>
+    <script src="parts-data.js?v=2.1"></script>
+    <script src="translations.js?v=2.1"></script>
+    <script src="pc-recommender.js?v=2.1"></script>
+    <script src="script.js?v=2.1"></script>
 </body>
 </html>
