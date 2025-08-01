@@ -11,28 +11,28 @@ const PARTS_DATA = {
   ],
   "cpu": [
     {
-      "name": "インテル Core i5 14400F BOX",
+      "name": "Intel Core i5 14400F BOX",
       "price": 19980,
       "cores": "10コア16スレッド",
       "frequency": "2.5GHz",
       "socket": "LGA1700"
     },
     {
-      "name": "インテル Core i5 14600K BOX",
+      "name": "Intel Core i5 14600K BOX",
       "price": 29800,
       "cores": "14コア20スレッド",
       "frequency": "3.5GHz",
       "socket": "LGA1700"
     },
     {
-      "name": "インテル Core Ultra 7 265KF BOX",
+      "name": "Intel Core Ultra 7 265KF BOX",
       "price": 43480,
       "cores": "20コア20スレッド",
       "frequency": "3.9GHz",
       "socket": "LGA1851"
     },
     {
-      "name": "インテル Core Ultra 7 265K BOX",
+      "name": "Intel Core Ultra 7 265K BOX",
       "price": 46447,
       "cores": "20コア20スレッド",
       "frequency": "3.9GHz",
@@ -62,13 +62,6 @@ const PARTS_DATA = {
     {
       "name": "AMD Ryzen 7 7800X3D BOX",
       "price": 52800,
-      "cores": "8コア16スレッド",
-      "frequency": "4.2GHz",
-      "socket": "Socket AM5"
-    },
-    {
-      "name": "AMD Ryzen 7 8700G BOX",
-      "price": 37778,
       "cores": "8コア16スレッド",
       "frequency": "4.2GHz",
       "socket": "Socket AM5"

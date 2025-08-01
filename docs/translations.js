@@ -44,10 +44,9 @@ const translations = {
         gpuBrandNvidia: "NVIDIA",
         gpuBrandAmd: "AMD",
         
-        usageOffice: "オフィス作業",
-        usageDevelopment: "プログラミング・開発",
-        usageGaming: "ゲーミング",
-        usageCreative: "クリエイティブ作業",
+        usageGaming: "ゲーム(汎用)",
+        usageTarkov: "Escape From Tarkov",
+        usageVrchat: "VRChat",
         
         // Results
         resultsTitle: "推奨パーツ構成",
@@ -130,10 +129,9 @@ const translations = {
         gpuBrandNvidia: "NVIDIA",
         gpuBrandAmd: "AMD",
         
-        usageOffice: "Office Work",
-        usageDevelopment: "Programming/Development",
-        usageGaming: "Gaming",
-        usageCreative: "Creative Work",
+        usageGaming: "Gaming (General)",
+        usageTarkov: "Escape From Tarkov",
+        usageVrchat: "VRChat",
         
         // Results
         resultsTitle: "Recommended PC Configuration",
@@ -244,10 +242,15 @@ function updatePageText() {
     document.querySelector('#gpu-brand option[value="nvidia"]').textContent = t('gpuBrandNvidia');
     document.querySelector('#gpu-brand option[value="amd"]').textContent = t('gpuBrandAmd');
     
-    document.querySelector('#usage option[value="office"]').textContent = t('usageOffice');
-    document.querySelector('#usage option[value="development"]').textContent = t('usageDevelopment');
     document.querySelector('#usage option[value="gaming"]').textContent = t('usageGaming');
-    document.querySelector('#usage option[value="creative"]').textContent = t('usageCreative');
+    document.querySelector('#usage option[value="tarkov"]').textContent = t('usageTarkov');
+    document.querySelector('#usage option[value="vrchat"]').textContent = t('usageVrchat');
+    
+    // Update checkbox translation for includeOS
+    const includeOSElement = document.querySelector('[data-translate="includeOS"]');
+    if (includeOSElement) {
+        includeOSElement.textContent = t('includeOS');
+    }
     
     // Results section
     const resultsTitleEl = document.querySelector('#results-section h2');
