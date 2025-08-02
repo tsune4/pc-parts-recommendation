@@ -359,6 +359,13 @@
             "interface": "PCI Express 5.0 x16"
         },
         {
+            "name": "TUF-RTX5090-O32G-GAMING [PCIExp 32GB]",
+            "price": 499800,
+            "gpu": "GeForce RTX 5090",
+            "memory": "32GB GDDR7",
+            "interface": "PCI Express 5.0 x16"
+        },
+        {
             "name": "GeForce RTX 5080",
             "price": 160000,
             "gpu": "GeForce RTX 5080",

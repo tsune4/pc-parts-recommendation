@@ -193,6 +193,13 @@ const PARTS_DATA = {
       "formFactor": "ATX"
     },
     {
+      "name": "ASRock B650M-H/M.2+",
+      "price": 12980,
+      "socket": "Socket AM5",
+      "chipset": "B650",
+      "formFactor": "MicroATX"
+    },
+    {
       "name": "MSI B650M GAMING PLUS WIFI",
       "price": 15980,
       "socket": "Socket AM5",
@@ -355,6 +362,13 @@ const PARTS_DATA = {
     {
       "name": "GeForce RTX 5090",
       "price": 380000,
+      "gpu": "GeForce RTX 5090",
+      "memory": "32GB GDDR7",
+      "interface": "PCI Express 5.0 x16"
+    },
+    {
+      "name": "TUF-RTX5090-O32G-GAMING [PCIExp 32GB]",
+      "price": 499800,
       "gpu": "GeForce RTX 5090",
       "memory": "32GB GDDR7",
       "interface": "PCI Express 5.0 x16"
