@@ -386,3 +386,27 @@ header p {
         padding: 8px 6px;
     }
 }
+
+/* Tarkov用途でのCPUブランド制御 */
+.tarkov-disabled {
+    filter: grayscale(100%);
+    opacity: 0.6;
+    cursor: not-allowed !important;
+    background-color: #f0f0f0 !important;
+    color: #888 !important;
+    pointer-events: none;
+}
+
+.tarkov-disabled:hover {
+    background-color: #f0f0f0 !important;
+}
+
+/* Tarkov用途選択時の視覚的フィードバック */
+select#cpu-brand.tarkov-disabled {
+    background-image: none;
+    border-color: #ddd;
+}
+
+select#cpu-brand.tarkov-disabled option {
+    color: #888;
+}

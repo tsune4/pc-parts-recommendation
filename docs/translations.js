@@ -298,5 +298,18 @@ function updatePageText() {
             budgetStatus.textContent = t('overBudget');
         }
     }
+    
+    // Tarkov用途でのCPUブランド制御を言語切り替え後も維持
+    const usageSelector = document.querySelector('#usage');
+    if (usageSelector && usageSelector.value === 'tarkov') {
+        const cpuBrandSelect = document.getElementById('cpu-brand');
+        if (cpuBrandSelect && !cpuBrandSelect.disabled) {
+            // Tarkov選択時の制御を再適用
+            if (typeof handleUsageChange === 'function') {
+                handleUsageChange('tarkov');
+            }
+        }
+    }
+    
     console.log(`[DEBUG] updatePageText finished for language: ${currentLanguage}`);
 }

@@ -48,6 +48,40 @@ function selectBestPart(parts, budget) {
     return withinBudget.sort((a, b) => b.price - a.price)[0];
 }
 
+// GPU用予算内最適選択（同価格時AMD優先）
+function selectBestGPU(gpus, budget, brand = 'any') {
+    if (!gpus || gpus.length === 0) return null;
+    
+    const withinBudget = gpus.filter(gpu => gpu.price <= budget);
+    if (withinBudget.length === 0) {
+        return gpus.sort((a, b) => a.price - b.price)[0];
+    }
+    
+    // 価格順でソート（高価格優先）
+    const sortedGPUs = withinBudget.sort((a, b) => b.price - a.price);
+    
+    // ブランド指定なしの場合、同価格ならAMD優先
+    if (brand === 'any' && sortedGPUs.length > 1) {
+        const topPrice = sortedGPUs[0].price;
+        const samePriceGPUs = sortedGPUs.filter(gpu => gpu.price === topPrice);
+        
+        if (samePriceGPUs.length > 1) {
+            // 同価格のGPUが複数ある場合、AMD優先
+            const amdGPU = samePriceGPUs.find(gpu => 
+                gpu.name.toLowerCase().includes('radeon') || 
+                gpu.name.toLowerCase().includes('rx')
+            );
+            
+            if (amdGPU) {
+                console.log(`同価格GPU検出、AMD優先選択: ${amdGPU.name} (¥${amdGPU.price})`);
+                return amdGPU;
+            }
+        }
+    }
+    
+    return sortedGPUs[0];
+}
+
 // メモリ容量を正しく解析する関数（キャッシュ機能付き）
 function parseMemoryCapacity(capacityString) {
     // キャッシュから値を取得
@@ -171,8 +205,92 @@ function selectStorage(storages, requirements, budget) {
     return suitable.sort((a, b) => b.price - a.price)[0];
 }
 
+// CPU用予算内最適選択（ゲーム汎用向け予算効率重視）
+function selectBestCPU(cpus, budget, brand = 'any', usage = 'gaming') {
+    if (!cpus || cpus.length === 0) return null;
+    
+    // CPUメーカーが指定されている場合の優先ロジック
+    if (brand !== 'any') {
+        console.log(`CPUメーカー指定: ${brand.toUpperCase()} - 最安モデルを選択（予算超過許容）`);
+        
+        // 指定されたブランドのCPUをフィルタ
+        const brandCPUs = cpus.filter(cpu => {
+            const cpuName = cpu.name.toLowerCase();
+            if (brand === 'intel') {
+                return cpuName.includes('intel') || cpuName.includes('core');
+            } else if (brand === 'amd') {
+                return cpuName.includes('amd') || cpuName.includes('ryzen');
+            }
+            return true;
+        });
+        
+        if (brandCPUs.length > 0) {
+            // 指定ブランドの最安モデルを選択（予算無視）
+            const cheapestBrandCPU = brandCPUs.sort((a, b) => a.price - b.price)[0];
+            console.log(`${brand.toUpperCase()}最安モデル選択: ${cheapestBrandCPU.name} (¥${cheapestBrandCPU.price})`);
+            
+            if (cheapestBrandCPU.price > budget) {
+                console.log(`⚠️ 予算¥${budget}を¥${cheapestBrandCPU.price - budget}超過しますが、メーカー指定のため選択`);
+            }
+            
+            return cheapestBrandCPU;
+        } else {
+            console.log(`指定された${brand.toUpperCase()}ブランドのCPUが見つかりません`);
+        }
+    }
+    
+    const withinBudget = cpus.filter(cpu => cpu.price <= budget);
+    if (withinBudget.length === 0) {
+        return cpus.sort((a, b) => a.price - b.price)[0];
+    }
+    
+    // ゲーム(汎用)でブランド指定なしの場合の特別ロジック
+    if (brand === 'any' && usage === 'gaming') {
+        console.log('ゲーム(汎用) CPU選択: 予算効率重視で最適ブランドを選択');
+        
+        // Intel CPUを探す
+        const intelCPUs = withinBudget.filter(cpu => 
+            cpu.name.toLowerCase().includes('intel') || 
+            cpu.name.toLowerCase().includes('core')
+        );
+        
+        // AMD CPUを探す
+        const amdCPUs = withinBudget.filter(cpu => 
+            cpu.name.toLowerCase().includes('amd') || 
+            cpu.name.toLowerCase().includes('ryzen')
+        );
+        
+        // 両方のブランドで最高性能CPUを取得
+        const bestIntel = intelCPUs.length > 0 ? intelCPUs.sort((a, b) => b.price - a.price)[0] : null;
+        const bestAMD = amdCPUs.length > 0 ? amdCPUs.sort((a, b) => b.price - a.price)[0] : null;
+        
+        if (bestIntel && bestAMD) {
+            // 両方とも予算内にある場合、予算上限により近い方を選択
+            const intelProximity = budget - bestIntel.price;
+            const amdProximity = budget - bestAMD.price;
+            
+            if (intelProximity <= amdProximity) {
+                console.log(`Intel/AMD両方予算内: より予算上限に近いIntel選択 ${bestIntel.name} (¥${bestIntel.price}, 余り¥${intelProximity})`);
+                return bestIntel;
+            } else {
+                console.log(`Intel/AMD両方予算内: より予算上限に近いAMD選択 ${bestAMD.name} (¥${bestAMD.price}, 余り¥${amdProximity})`);
+                return bestAMD;
+            }
+        } else if (bestIntel) {
+            console.log(`Intel CPU選択: ${bestIntel.name} (¥${bestIntel.price})`);
+            return bestIntel;
+        } else if (bestAMD) {
+            console.log(`AMD CPU選択: ${bestAMD.name} (¥${bestAMD.price})`);
+            return bestAMD;
+        }
+    }
+    
+    // 通常の高価格優先選択
+    return withinBudget.sort((a, b) => b.price - a.price)[0];
+}
+
 // ブランド別CPU選択（特別ロジック対応）
-function selectCPUByBrand(cpus, budget, brand, specialLogic = 'general') {
+function selectCPUByBrand(cpus, budget, brand, specialLogic = 'general', usage = 'gaming') {
     if (!cpus || cpus.length === 0) return null;
 
     let filteredCPUs = cpus;
@@ -189,6 +307,18 @@ function selectCPUByBrand(cpus, budget, brand, specialLogic = 'general') {
         });
         
         console.log(`Filtered ${filteredCPUs.length} ${brand.toUpperCase()} CPUs from ${cpus.length} total CPUs`);
+        
+        // CPUメーカー指定時は最安モデル選択（予算超過許容、ただしX3D特別ロジック除く）
+        if (filteredCPUs.length > 0 && specialLogic !== 'x3d_cpu') {
+            const cheapestBrandCPU = filteredCPUs.sort((a, b) => a.price - b.price)[0];
+            console.log(`${brand.toUpperCase()}メーカー指定: 最安モデル選択 ${cheapestBrandCPU.name} (¥${cheapestBrandCPU.price})`);
+            
+            if (cheapestBrandCPU.price > budget) {
+                console.log(`⚠️ 予算¥${budget}を¥${cheapestBrandCPU.price - budget}超過しますが、メーカー指定のため選択`);
+            }
+            
+            return cheapestBrandCPU;
+        }
     }
     
     if (filteredCPUs.length === 0) {
@@ -196,7 +326,7 @@ function selectCPUByBrand(cpus, budget, brand, specialLogic = 'general') {
         filteredCPUs = cpus;
     }
     
-    // X3D CPU優先ロジック (Escape From Tarkov用)
+    // X3D CPU専用ロジック (Escape From Tarkov用) - インテリジェントなX3D選択
     if (specialLogic === 'x3d_cpu') {
         const x3dCPUs = filteredCPUs.filter(cpu => 
             cpu.name.toLowerCase().includes('x3d') || 
@@ -204,19 +334,32 @@ function selectCPUByBrand(cpus, budget, brand, specialLogic = 'general') {
         );
         
         if (x3dCPUs.length > 0) {
-            console.log(`X3D CPU優先選択: ${x3dCPUs.length}個のX3D CPUを発見`);
-            // X3D CPUから予算内で最適なものを選択
-            const selectedX3D = selectBestPart(x3dCPUs, budget);
-            if (selectedX3D) {
-                console.log(`X3D CPU選択: ${selectedX3D.name}`);
-                return selectedX3D;
+            console.log(`Tarkov専用: X3D CPUのみから選択 (${x3dCPUs.length}個のX3D CPUを発見)`);
+            
+            // X3D CPUを価格順でソート
+            const sortedX3DCPUs = x3dCPUs.sort((a, b) => a.price - b.price);
+            
+            // 7800X3Dをデフォルトとして探す
+            const ryzen7800X3D = sortedX3DCPUs.find(cpu => 
+                cpu.name.toLowerCase().includes('7800x3d')
+            );
+            
+            if (ryzen7800X3D) {
+                console.log(`Tarkov用デフォルト選択: ${ryzen7800X3D.name} (¥${ryzen7800X3D.price})`);
+                return ryzen7800X3D;
+            } else {
+                // 7800X3Dがない場合は最安のX3D CPUを選択
+                const defaultX3D = sortedX3DCPUs[0];
+                console.log(`7800X3D未発見、代替X3D選択: ${defaultX3D.name} (¥${defaultX3D.price})`);
+                return defaultX3D;
             }
         } else {
-            console.log('X3D CPUが見つからないため、通常のCPU選択を実行');
+            console.log('警告: X3D CPUが見つかりません！Tarkov用途ではX3D CPUが必須です');
+            return null;
         }
     }
     
-    return selectBestPart(filteredCPUs, budget);
+    return selectBestCPU(filteredCPUs, budget, brand, usage);
 }
 
 // ブランド別GPU選択（特別ロジック対応）
@@ -279,7 +422,7 @@ function selectGPUByBrand(gpus, budget, brand, specialLogic = 'general') {
         }
     }
     
-    return selectBestPart(filteredGPUs, budget);
+    return selectBestGPU(filteredGPUs, budget, brand);
 }
 
 // PSU選択
@@ -337,25 +480,62 @@ function upgradePartsInOrder(currentRecommendations, allParts, remainingBudget, 
     
     console.log(`Starting professional upgrade with ¥${availableBudget} remaining budget`);
     
-    // 優先度1: GPUアップグレード
-    if (availableBudget > 0) {
-        const gpuUpgrade = upgradeGPU(optimized.gpu, allParts.gpu, requirements.gpuBrand, availableBudget);
-        if (gpuUpgrade && gpuUpgrade.price > optimized.gpu.price) {
-            const upgradeCost = gpuUpgrade.price - optimized.gpu.price;
-            console.log(`Upgrading GPU: ${optimized.gpu.name} (¥${optimized.gpu.price}) -> ${gpuUpgrade.name} (¥${gpuUpgrade.price})`);
-            optimized.gpu = gpuUpgrade;
-            availableBudget -= upgradeCost;
-        }
+    // 合計コストを計算するヘルパー関数
+    function calculateTotalCost(parts) {
+        return Object.values(parts).reduce((sum, part) => sum + (part ? part.price : 0), 0);
     }
     
-    // 優先度2: CPUアップグレード
-    if (availableBudget > 0) {
-        const cpuUpgrade = upgradeCPU(optimized.cpu, allParts.cpu, requirements.cpuBrand, availableBudget);
+    // 予算チェック付きアップグレード実行関数
+    function attemptUpgrade(upgradeName, upgradeFunc, originalBudget) {
+        if (availableBudget <= 0) return false;
+        
+        const beforeState = { ...optimized };
+        const beforeCost = calculateTotalCost(beforeState);
+        
+        const result = upgradeFunc();
+        if (!result.success) return false;
+        
+        const afterCost = calculateTotalCost(optimized);
+        const actualCost = afterCost - beforeCost;
+        
+        // 予算チェック
+        if (actualCost > availableBudget) {
+            console.log(`⚠️ ${upgradeName}: 予算¥${availableBudget}を¥${actualCost - availableBudget}超過するためアップグレード取り消し`);
+            // 状態を元に戻す
+            Object.assign(optimized, beforeState);
+            return false;
+        }
+        
+        console.log(`✅ ${upgradeName}: 成功 (コスト: ¥${actualCost})`);
+        availableBudget -= actualCost;
+        return true;
+    }
+    
+    // 優先度1: GPUアップグレード
+    attemptUpgrade('GPUアップグレード', () => {
+        const gpuUpgrade = upgradeGPU(optimized.gpu, allParts.gpu, requirements.gpuBrand, availableBudget);
+        if (gpuUpgrade && gpuUpgrade.price > optimized.gpu.price) {
+            console.log(`Upgrading GPU: ${optimized.gpu.name} (¥${optimized.gpu.price}) -> ${gpuUpgrade.name} (¥${gpuUpgrade.price})`);
+            optimized.gpu = gpuUpgrade;
+            return { success: true };
+        }
+        return { success: false };
+    }, availableBudget);
+    
+    // 優先度2: CPUアップグレード (Tarkov専用ロジック含む)
+    attemptUpgrade('CPUアップグレード', () => {
+        let cpuUpgrade = null;
+        
+        // Tarkov用途の場合の特別ロジック
+        if (requirements.usage === 'tarkov') {
+            cpuUpgrade = upgradeTarkovX3DCPU(optimized.cpu, allParts.cpu, availableBudget, optimized.gpu);
+        } else {
+            cpuUpgrade = upgradeCPU(optimized.cpu, allParts.cpu, requirements.cpuBrand, availableBudget);
+        }
+        
         if (cpuUpgrade && cpuUpgrade.price > optimized.cpu.price) {
-            const upgradeCost = cpuUpgrade.price - optimized.cpu.price;
             console.log(`Upgrading CPU: ${optimized.cpu.name} (¥${optimized.cpu.price}) -> ${cpuUpgrade.name} (¥${cpuUpgrade.price})`);
             optimized.cpu = cpuUpgrade;
-            availableBudget -= upgradeCost;
             
             // CPUが変更された場合、マザーボードとメモリの互換性を再確認
             const newMotherboard = selectCompatibleMotherboard(allParts.motherboard, cpuUpgrade);
@@ -363,7 +543,6 @@ function upgradePartsInOrder(currentRecommendations, allParts, remainingBudget, 
                 const mbCostDiff = newMotherboard.price - optimized.motherboard.price;
                 console.log(`CPU変更によりマザーボード再選択: ${optimized.motherboard.name} -> ${newMotherboard.name} (差額: ¥${mbCostDiff})`);
                 optimized.motherboard = newMotherboard;
-                availableBudget -= mbCostDiff;
             }
             
             const newMemory = selectCompatibleMemoryByCapacity(allParts.memory, requirements.ram, cpuUpgrade.socket);
@@ -371,65 +550,67 @@ function upgradePartsInOrder(currentRecommendations, allParts, remainingBudget, 
                 const memCostDiff = newMemory.price - optimized.memory.price;
                 console.log(`CPU変更によりメモリ再選択: ${optimized.memory.name} -> ${newMemory.name} (差額: ¥${memCostDiff})`);
                 optimized.memory = newMemory;
-                availableBudget -= memCostDiff;
             }
+            
+            return { success: true };
         }
-    }
+        return { success: false };
+    }, availableBudget);
     
     // 優先度3: マザーボードアップグレード
-    if (availableBudget > 0) {
+    attemptUpgrade('マザーボードアップグレード', () => {
         const motherboardUpgrade = upgradeMotherboard(optimized.motherboard, allParts.motherboard, optimized.cpu.socket, availableBudget);
         if (motherboardUpgrade && motherboardUpgrade.price > optimized.motherboard.price) {
-            const upgradeCost = motherboardUpgrade.price - optimized.motherboard.price;
             console.log(`Upgrading motherboard: ${optimized.motherboard.name} (¥${optimized.motherboard.price}) -> ${motherboardUpgrade.name} (¥${motherboardUpgrade.price})`);
             optimized.motherboard = motherboardUpgrade;
-            availableBudget -= upgradeCost;
+            return { success: true };
         }
-    }
+        return { success: false };
+    }, availableBudget);
     
     // 優先度4: クーラーアップグレード
-    if (availableBudget > 0) {
+    attemptUpgrade('クーラーアップグレード', () => {
         const coolerUpgrade = upgradeCooler(optimized.cooler, allParts.cooler, availableBudget);
         if (coolerUpgrade && coolerUpgrade.price > optimized.cooler.price) {
-            const upgradeCost = coolerUpgrade.price - optimized.cooler.price;
             console.log(`Upgrading cooler: ${optimized.cooler.name} (¥${optimized.cooler.price}) -> ${coolerUpgrade.name} (¥${coolerUpgrade.price})`);
             optimized.cooler = coolerUpgrade;
-            availableBudget -= upgradeCost;
+            return { success: true };
         }
-    }
+        return { success: false };
+    }, availableBudget);
     
     // 優先度5: PSUアップグレード
-    if (availableBudget > 0) {
+    attemptUpgrade('PSUアップグレード', () => {
         const psuUpgrade = upgradePSU(optimized.psu, allParts.psu, optimized.cpu, optimized.gpu, availableBudget);
         if (psuUpgrade && psuUpgrade.price > optimized.psu.price) {
-            const upgradeCost = psuUpgrade.price - optimized.psu.price;
             console.log(`Upgrading PSU: ${optimized.psu.name} (¥${optimized.psu.price}) -> ${psuUpgrade.name} (¥${psuUpgrade.price})`);
             optimized.psu = psuUpgrade;
-            availableBudget -= upgradeCost;
+            return { success: true };
         }
-    }
+        return { success: false };
+    }, availableBudget);
     
     // 優先度6: PCケースアップグレード
-    if (availableBudget > 0) {
+    attemptUpgrade('PCケースアップグレード', () => {
         const caseUpgrade = upgradeCase(optimized.case, allParts.case, optimized.motherboard.formFactor, availableBudget);
         if (caseUpgrade && caseUpgrade.price > optimized.case.price) {
-            const upgradeCost = caseUpgrade.price - optimized.case.price;
             console.log(`Upgrading PC case: ${optimized.case.name} (¥${optimized.case.price}) -> ${caseUpgrade.name} (¥${caseUpgrade.price})`);
             optimized.case = caseUpgrade;
-            availableBudget -= upgradeCost;
+            return { success: true };
         }
-    }
+        return { success: false };
+    }, availableBudget);
     
     // 最後にストレージアップグレード（容量固定のため最後）
-    if (availableBudget > 0) {
+    attemptUpgrade('ストレージアップグレード', () => {
         const storageUpgrade = upgradeStorage(optimized.storage, allParts.storage, requirements.storage.capacity, availableBudget);
         if (storageUpgrade && storageUpgrade.price > optimized.storage.price) {
-            const upgradeCost = storageUpgrade.price - optimized.storage.price;
             console.log(`Upgrading storage: ${optimized.storage.name} (¥${optimized.storage.price}) -> ${storageUpgrade.name} (¥${storageUpgrade.price})`);
             optimized.storage = storageUpgrade;
-            availableBudget -= upgradeCost;
+            return { success: true };
         }
-    }
+        return { success: false };
+    }, availableBudget);
     
     console.log(`Professional upgrade completed. Remaining budget: ¥${availableBudget}`);
     return optimized;
@@ -555,6 +736,82 @@ function selectCheapestPart(parts) {
     return parts.sort((a, b) => a.price - b.price)[0];
 }
 
+// 互換性のあるマザーボードを選択（最安優先）
+function selectCompatibleMotherboard(motherboards, cpu) {
+    if (!motherboards || motherboards.length === 0 || !cpu) return null;
+    
+    const compatibleMotherboards = motherboards.filter(mb => mb.socket === cpu.socket);
+    if (compatibleMotherboards.length === 0) {
+        console.warn(`警告: CPU ${cpu.name} (${cpu.socket}) に適合するマザーボードが見つかりません`);
+        return null;
+    }
+    
+    // 最安価のマザーボードを選択
+    const cheapest = compatibleMotherboards.sort((a, b) => a.price - b.price)[0];
+    console.log(`マザーボード選択: ${cheapest.name} (${cheapest.socket}, ¥${cheapest.price})`);
+    return cheapest;
+}
+
+// システムに適したPSUを選択
+function selectPSUForSystem(psus, cpu, gpu) {
+    if (!psus || psus.length === 0) return null;
+    
+    // 基本的な電力要件を計算（簡易版）
+    let requiredWattage = 400; // ベース消費電力
+    
+    if (cpu) {
+        // CPU名から大まかな消費電力を推定
+        if (cpu.name.toLowerCase().includes('i9') || cpu.name.toLowerCase().includes('ryzen 9')) {
+            requiredWattage += 150;
+        } else if (cpu.name.toLowerCase().includes('i7') || cpu.name.toLowerCase().includes('ryzen 7')) {
+            requiredWattage += 120;
+        } else {
+            requiredWattage += 100;
+        }
+    }
+    
+    if (gpu) {
+        // GPU名から大まかな消費電力を推定
+        const gpuName = gpu.name.toLowerCase();
+        if (gpuName.includes('5090') || gpuName.includes('5080')) {
+            requiredWattage += 400;
+        } else if (gpuName.includes('5070') || gpuName.includes('9070')) {
+            requiredWattage += 300;
+        } else if (gpuName.includes('5060') || gpuName.includes('9060')) {
+            requiredWattage += 200;
+        } else {
+            requiredWattage += 250; // デフォルト
+        }
+    }
+    
+    // 安全マージンを追加（20%）
+    requiredWattage = Math.ceil(requiredWattage * 1.2);
+    
+    console.log(`PSU要件: 最低${requiredWattage}W必要`);
+    
+    // 要件を満たすPSUの中から最安を選択
+    const suitablePSUs = psus.filter(psu => {
+        const wattage = parseInt(psu.wattage.replace('W', ''));
+        return wattage >= requiredWattage;
+    });
+    
+    if (suitablePSUs.length === 0) {
+        console.warn(`警告: ${requiredWattage}W以上のPSUが見つかりません。最大容量のPSUを選択します。`);
+        const maxPSU = psus.sort((a, b) => {
+            const aWatt = parseInt(a.wattage.replace('W', ''));
+            const bWatt = parseInt(b.wattage.replace('W', ''));
+            return bWatt - aWatt;
+        })[0];
+        console.log(`PSU選択: ${maxPSU.name} (${maxPSU.wattage}, ¥${maxPSU.price})`);
+        return maxPSU;
+    }
+    
+    // 適合するPSUの中から最安を選択
+    const cheapest = suitablePSUs.sort((a, b) => a.price - b.price)[0];
+    console.log(`PSU選択: ${cheapest.name} (${cheapest.wattage}, ¥${cheapest.price})`);
+    return cheapest;
+}
+
 // ストレージのアップグレード（同容量の高性能モデル）
 function upgradeStorage(currentStorage, allStorages, targetCapacity, budget) {
     if (!allStorages || allStorages.length === 0) return null;
@@ -590,6 +847,77 @@ function upgradeCooler(currentCooler, allCoolers, budget) {
         .sort((a, b) => b.price - a.price);
     
     return betterCoolers.length > 0 ? betterCoolers[0] : null;
+}
+
+// Tarkov専用X3D CPUアップグレード関数
+function upgradeTarkovX3DCPU(currentCPU, allCPUs, budget, currentGPU) {
+    if (!allCPUs || allCPUs.length === 0 || !currentCPU) return null;
+    
+    // X3D CPUのみをフィルタリング
+    const x3dCPUs = allCPUs.filter(cpu => 
+        cpu.name.toLowerCase().includes('x3d') || 
+        cpu.name.toLowerCase().includes('3d')
+    );
+    
+    if (x3dCPUs.length === 0) {
+        console.log('X3D CPUが見つかりません');
+        return null;
+    }
+    
+    // X3D CPUを価格順でソート
+    const sortedX3DCPUs = x3dCPUs.sort((a, b) => a.price - b.price);
+    
+    // 現在のCPUがすでに最高位のX3D CPUかチェック
+    const currentIsHighestX3D = sortedX3DCPUs[sortedX3DCPUs.length - 1].name === currentCPU.name;
+    if (currentIsHighestX3D) {
+        console.log('すでに最高位のX3D CPUです');
+        return null;
+    }
+    
+    // GPU価格帯による判定: RTX 5080と5090の価格差の間かチェック
+    const rtx5080Price = 160000; // RTX 5080の価格
+    const rtx5090Price = 380000; // RTX 5090の価格
+    const gpuPriceGap = rtx5090Price - rtx5080Price; // 220,000円の差
+    
+    // 現在のGPUがRTX 5080以下で、予算が十分にある場合
+    const canUpgradeGPU = currentGPU.price <= rtx5080Price && budget >= gpuPriceGap * 0.3; // 価格差の30%以上の予算
+    
+    if (!canUpgradeGPU) {
+        console.log('GPU上位アップグレードが困難なため、X3D CPUをアップグレード');
+        
+        // 9800X3Dを最優先で探す
+        const ryzen9800X3D = sortedX3DCPUs.find(cpu => 
+            cpu.name.toLowerCase().includes('9800x3d')
+        );
+        
+        if (ryzen9800X3D && ryzen9800X3D.price > currentCPU.price && ryzen9800X3D.price <= currentCPU.price + budget) {
+            console.log(`Tarkov最適化: 9800X3Dにアップグレード ${ryzen9800X3D.name} (¥${ryzen9800X3D.price})`);
+            return ryzen9800X3D;
+        }
+        
+        // 9800X3Dがない場合は9950X3Dを探す
+        const ryzen9950X3D = sortedX3DCPUs.find(cpu => 
+            cpu.name.toLowerCase().includes('9950x3d')
+        );
+        
+        if (ryzen9950X3D && ryzen9950X3D.price > currentCPU.price && ryzen9950X3D.price <= currentCPU.price + budget) {
+            console.log(`Tarkov最適化: 9950X3Dにアップグレード ${ryzen9950X3D.name} (¥${ryzen9950X3D.price})`);
+            return ryzen9950X3D;
+        }
+    }
+    
+    // 通常のアップグレード: 現在より上位のX3D CPUを予算内で選択
+    const betterX3DCPUs = sortedX3DCPUs.filter(cpu => 
+        cpu.price > currentCPU.price && cpu.price <= currentCPU.price + budget
+    );
+    
+    if (betterX3DCPUs.length > 0) {
+        const upgrade = betterX3DCPUs[0]; // 最安の上位X3D CPU
+        console.log(`通常X3Dアップグレード: ${upgrade.name} (¥${upgrade.price})`);
+        return upgrade;
+    }
+    
+    return null;
 }
 
 // GPUアップグレード関数
@@ -744,6 +1072,94 @@ function parseCapacityToGB(capacityStr) {
     return num; // GBが単位でない場合も数値をそのまま返す
 }
 
+// CPU+マザーボードセットを選択（CPUメーカー指定時の予算超過許容）
+function selectCPUMotherboardSet(cpus, motherboards, budget, cpuBrand, specialLogic, usage, requirements) {
+    console.log(`CPU+マザーボードセット選択開始: 予算¥${budget}, CPUブランド: ${cpuBrand}`);
+    
+    if (!cpus || cpus.length === 0 || !motherboards || motherboards.length === 0) {
+        console.error('CPUまたはマザーボードデータが不足');
+        return { cpu: null, motherboard: null, memory: null };
+    }
+    
+    let selectedCPU = null;
+    let selectedMotherboard = null;
+    let selectedMemory = null;
+    
+    // CPUメーカーが指定されている場合の特別処理
+    if (cpuBrand && cpuBrand !== 'any') {
+        console.log(`⚡ CPUメーカー指定 (${cpuBrand.toUpperCase()}): 予算超過を許容して最安モデルを選択`);
+        
+        // 指定されたブランドのCPUをフィルタ
+        const brandCPUs = cpus.filter(cpu => {
+            const cpuName = cpu.name.toLowerCase();
+            if (cpuBrand === 'intel') {
+                return cpuName.includes('intel') || cpuName.includes('core');
+            } else if (cpuBrand === 'amd') {
+                return cpuName.includes('amd') || cpuName.includes('ryzen');
+            }
+            return true;
+        });
+        
+        if (brandCPUs.length > 0) {
+            // X3D特別ロジックがある場合はそれを優先
+            if (specialLogic === 'x3d_cpu') {
+                selectedCPU = selectCPUByBrand(cpus, budget * 10, cpuBrand, specialLogic, usage); // 予算を大きくして制限を無効化
+            } else {
+                // 指定ブランドの最安モデルを選択（予算無視）
+                selectedCPU = brandCPUs.sort((a, b) => a.price - b.price)[0];
+                console.log(`${cpuBrand.toUpperCase()}最安モデル選択: ${selectedCPU.name} (¥${selectedCPU.price})`);
+            }
+        } else {
+            console.warn(`指定された${cpuBrand.toUpperCase()}ブランドのCPUが見つかりません`);
+            // フォールバック: 通常のCPU選択
+            selectedCPU = selectCPUByBrand(cpus, budget, 'any', specialLogic, usage);
+        }
+    } else {
+        // CPUメーカー指定なしの場合は通常の予算制限付き選択
+        console.log('CPUメーカー指定なし: 予算内で最適なCPUを選択');
+        selectedCPU = selectCPUByBrand(cpus, budget, cpuBrand, specialLogic, usage);
+    }
+    
+    if (!selectedCPU) {
+        console.error('CPU選択に失敗しました');
+        return { cpu: null, motherboard: null, memory: null };
+    }
+    
+    // CPUに適合するマザーボードを選択（最安優先）
+    selectedMotherboard = selectCompatibleMotherboard(motherboards, selectedCPU);
+    if (!selectedMotherboard) {
+        console.error(`CPU ${selectedCPU.name} に適合するマザーボードが見つかりません`);
+        return { cpu: selectedCPU, motherboard: null, memory: null };
+    }
+    
+    // CPUソケットに適合するメモリを選択
+    selectedMemory = selectCompatibleMemoryByCapacity(PARTS_DATA.memory, requirements.ram, selectedCPU.socket);
+    if (!selectedMemory) {
+        console.warn('適合するメモリが見つかりません');
+    }
+    
+    const totalCost = selectedCPU.price + selectedMotherboard.price + (selectedMemory?.price || 0);
+    const overBudget = totalCost - budget;
+    
+    console.log('CPU+マザーボード+メモリセット選択完了:');
+    console.log(`- CPU: ${selectedCPU.name} (¥${selectedCPU.price})`);
+    console.log(`- マザーボード: ${selectedMotherboard.name} (¥${selectedMotherboard.price})`);
+    console.log(`- メモリ: ${selectedMemory?.name || 'なし'} (¥${selectedMemory?.price || 0})`);
+    console.log(`セット合計: ¥${totalCost} (予算¥${budget})`);
+    
+    if (overBudget > 0 && cpuBrand && cpuBrand !== 'any') {
+        console.log(`💰 CPUメーカー指定により¥${overBudget}の予算超過を許容`);
+    } else if (overBudget > 0) {
+        console.warn(`⚠️ 予算¥${overBudget}超過 - 他のパーツで調整が必要`);
+    }
+    
+    return {
+        cpu: selectedCPU,
+        motherboard: selectedMotherboard,
+        memory: selectedMemory
+    };
+}
+
 // メイン推奨機能 - プロのPCビルダーアシスタント版
 function getRecommendations(requirements) {
     const { budget, ram, storage, cpuBrand, gpuBrand, usage, includeOS } = requirements;
@@ -775,33 +1191,54 @@ function getRecommendations(requirements) {
             }
         }
         
+        // 【新方式: CPU・マザーボード以外を先に選択】
+        console.log('新方式: CPU・マザーボード以外のパーツを先に選択');
+        
         // 予算配分（有効予算を使用）
-        const cpuBudget = effectiveBudget * usageRec.cpuWeight;
         const gpuBudget = effectiveBudget * usageRec.gpuWeight;
         
-        // コアパーツの初期選択（CPU、GPU）- 特別ロジック対応
-        const selectedCPU = selectCPUByBrand(partsData.cpu, cpuBudget, cpuBrand, usageRec.specialLogic);
+        // GPU選択
         const selectedGPU = selectGPUByBrand(partsData.gpu, gpuBudget, gpuBrand, usageRec.specialLogic);
+        console.log(`選択されたGPU: ${selectedGPU?.name} (¥${selectedGPU?.price})`);
         
-        console.log(`選択されたCPU: ${selectedCPU?.name} (ソケット: ${selectedCPU?.socket})`);
-        console.log(`選択されたGPU: ${selectedGPU?.name}`);
+        // 基本パーツ選択（CPU以外）
+        const selectedMemory = selectCompatibleMemoryByCapacity(partsData.memory, requirements.ram, 'LGA1700'); // 仮でLGA1700
+        const selectedStorage = selectStorageByCapacity(partsData.storage, requirements.storage.capacity);
+        const selectedCooler = selectCheapestPart(partsData.cooler);
+        const selectedCase = selectCheapestPart(partsData.case);
+        const selectedPSU = selectPSUForSystem(partsData.psu, null, selectedGPU); // CPU未定なので仮選択
         
-        // 【フェーズ1: 基本パーツの仮決定】
-        console.log('フェーズ1: 基本パーツの仮決定');
-        const basicParts = selectBasicParts(partsData, requirements, selectedCPU);
+        console.log('固定パーツ選択完了:');
+        console.log(`- GPU: ${selectedGPU?.name} (¥${selectedGPU?.price})`);
+        console.log(`- メモリ: ${selectedMemory?.name} (¥${selectedMemory?.price})`);
+        console.log(`- ストレージ: ${selectedStorage?.name} (¥${selectedStorage?.price})`);
+        console.log(`- クーラー: ${selectedCooler?.name} (¥${selectedCooler?.price})`);
+        console.log(`- ケース: ${selectedCase?.name} (¥${selectedCase?.price})`);
+        console.log(`- PSU: ${selectedPSU?.name} (¥${selectedPSU?.price})`);
         
-        // マザーボード選択（互換性チェック強化）
-        const selectedMotherboard = selectCompatibleMotherboard(partsData.motherboard, selectedCPU);
-
+        // 固定パーツの合計金額を計算
+        const fixedPartsPrice = (selectedGPU?.price || 0) + (selectedMemory?.price || 0) + 
+                               (selectedStorage?.price || 0) + (selectedCooler?.price || 0) + 
+                               (selectedCase?.price || 0) + (selectedPSU?.price || 0);
+        
+        console.log(`固定パーツ合計: ¥${fixedPartsPrice}`);
+        
+        // CPU+マザーボード用の残り予算を計算
+        const remainingBudgetForCPUMB = effectiveBudget - fixedPartsPrice;
+        console.log(`CPU+マザーボード用残り予算: ¥${remainingBudgetForCPUMB}`);
+        
+        // CPU+マザーボードセットを予算内で選択
+        const cpuMBSet = selectCPUMotherboardSet(partsData.cpu, partsData.motherboard, remainingBudgetForCPUMB, cpuBrand, usageRec.specialLogic, usage, requirements);
+        
         let recommendations = {
-            cpu: selectedCPU,
-            cooler: selectCheapestPart(partsData.cooler), // AK400を想定（最安価）
-            motherboard: selectedMotherboard,
-            memory: basicParts.memory,
-            storage: basicParts.storage,
+            cpu: cpuMBSet.cpu,
+            cooler: selectedCooler,
+            motherboard: cpuMBSet.motherboard,
+            memory: cpuMBSet.memory, // CPUソケットに対応したメモリ
+            storage: selectedStorage,
             gpu: selectedGPU,
-            psu: selectPSUForSystem(partsData.psu, selectedCPU, selectedGPU),
-            case: basicParts.case
+            psu: selectPSUForSystem(partsData.psu, cpuMBSet.cpu, selectedGPU), // 最終PSU調整
+            case: selectedCase
         };
         
         // nullチェックとエラーハンドリング
@@ -819,7 +1256,14 @@ function getRecommendations(requirements) {
         // 予算オーバーチェックと自動調整（有効予算を使用）
         if (totalPrice > effectiveBudget) {
             console.log(`予算オーバー検出: ¥${totalPrice - effectiveBudget} 超過`);
-            recommendations = adjustBudgetAutomatically(recommendations, partsData, effectiveBudget, requirements);
+            
+            // ゲーム(汎用)用途の特別調整
+            if (usage === 'gaming') {
+                recommendations = adjustBudgetForGaming(recommendations, partsData, effectiveBudget, requirements);
+            } else {
+                recommendations = adjustBudgetAutomatically(recommendations, partsData, effectiveBudget, requirements);
+            }
+            
             totalPrice = Object.values(recommendations).reduce((sum, part) => sum + (part ? part.price : 0), 0);
         }
         
@@ -1053,11 +1497,73 @@ function downgradeGPU(currentGPU, allGPUs, gpuBrand) {
 
 // 予算内に収めるための自動調整
 function adjustBudgetAutomatically(recommendations, allParts, budget, requirements) {
-    const { cpuBrand, gpuBrand } = requirements;
+    const { cpuBrand, gpuBrand, usage } = requirements;
     let adjustedRecommendations = { ...recommendations };
     let totalPrice = Object.values(adjustedRecommendations).reduce((sum, part) => sum + (part ? part.price : 0), 0);
     
     console.log(`予算調整開始: 現在の合計 ¥${totalPrice}, 予算 ¥${budget}`);
+    
+    // ゲーム(汎用)でCPUブランド指定なしの場合、まずIntel CPUに変更を試す
+    if (usage === 'gaming' && cpuBrand === 'any' && totalPrice > budget) {
+        console.log('ゲーム(汎用)用途: Intel CPUへの変更を試行');
+        
+        const currentCPU = adjustedRecommendations.cpu;
+        const isCurrentAMD = currentCPU && (currentCPU.name.toLowerCase().includes('amd') || currentCPU.name.toLowerCase().includes('ryzen'));
+        
+        if (isCurrentAMD) {
+            // Intel CPUを探す
+            const intelCPUs = allParts.cpu.filter(cpu => 
+                cpu.name.toLowerCase().includes('intel') || 
+                cpu.name.toLowerCase().includes('core')
+            );
+            
+            if (intelCPUs.length > 0) {
+                // 価格順でソート（安い順）
+                const sortedIntelCPUs = intelCPUs.sort((a, b) => a.price - b.price);
+                
+                for (const intelCPU of sortedIntelCPUs) {
+                    // Intel CPUに変更した場合の合計金額を計算
+                    const priceDiff = intelCPU.price - currentCPU.price;
+                    const newTotalPrice = totalPrice + priceDiff;
+                    
+                    if (newTotalPrice <= budget) {
+                        console.log(`Intel CPUに変更: ${currentCPU.name} (¥${currentCPU.price}) → ${intelCPU.name} (¥${intelCPU.price})`);
+                        console.log(`予算調整効果: ¥${newTotalPrice} (¥${budget - newTotalPrice}余り)`);
+                        
+                        adjustedRecommendations.cpu = intelCPU;
+                        
+                        // CPUソケット変更に伴う互換性調整
+                        const newMotherboard = selectCompatibleMotherboard(allParts.motherboard, intelCPU);
+                        if (newMotherboard) {
+                            const mbCostDiff = newMotherboard.price - adjustedRecommendations.motherboard.price;
+                            adjustedRecommendations.motherboard = newMotherboard;
+                            console.log(`マザーボード変更: ${adjustedRecommendations.motherboard.name} → ${newMotherboard.name} (差額: ¥${mbCostDiff})`);
+                        }
+                        
+                        const newMemory = selectCompatibleMemoryByCapacity(allParts.memory, requirements.ram, intelCPU.socket);
+                        if (newMemory) {
+                            const memCostDiff = newMemory.price - adjustedRecommendations.memory.price;
+                            adjustedRecommendations.memory = newMemory;
+                            console.log(`メモリ変更: 差額 ¥${memCostDiff}`);
+                        }
+                        
+                        // PSUも再選択
+                        adjustedRecommendations.psu = selectPSUForSystem(allParts.psu, intelCPU, adjustedRecommendations.gpu);
+                        
+                        // 新しい合計金額を計算
+                        totalPrice = Object.values(adjustedRecommendations).reduce((sum, part) => sum + (part ? part.price : 0), 0);
+                        console.log(`Intel CPU変更後の合計: ¥${totalPrice}`);
+                        
+                        if (totalPrice <= budget) {
+                            console.log('Intel CPUへの変更で予算内に収まりました');
+                            return adjustedRecommendations;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
     
     let adjustmentStep = 0;
     const maxAdjustments = 20; // 無限ループ防止
@@ -1070,49 +1576,117 @@ function adjustBudgetAutomatically(recommendations, allParts, budget, requiremen
         adjustmentStep++;
         console.log(`調整ステップ ${adjustmentStep}: オーバー金額 ¥${totalPrice - budget}`);
         
-        const isEvenStep = adjustmentStep % 2 === 0;
         let progressMade = false;
         
-        if (isEvenStep) {
-            // 偶数ステップ: CPUをダウングレード
-            const downgradedCPU = downgradeCPUByBrand(adjustedRecommendations.cpu, allParts.cpu, cpuBrand, adjustedRecommendations.cpu?.socket);
+        // ゲーム(汎用)用途でCPUブランド指定なしの場合、CPU優先調整
+        if (usage === 'gaming' && cpuBrand === 'any') {
+            console.log('ゲーム(汎用)用途: CPU優先調整モード');
             
-            if (downgradedCPU && downgradedCPU !== downgradedCPULast) {
-                console.log(`CPU変更: ${adjustedRecommendations.cpu.name} → ${downgradedCPU.name}`);
-                console.log(`CPUソケット変更: ${adjustedRecommendations.cpu.socket} → ${downgradedCPU.socket}`);
+            // 現在のCPUがAMDの場合、Intelに変更を試す
+            const currentCPU = adjustedRecommendations.cpu;
+            const isCurrentAMD = currentCPU && (currentCPU.name.toLowerCase().includes('amd') || currentCPU.name.toLowerCase().includes('ryzen'));
+            
+            if (isCurrentAMD && adjustmentStep <= 3) {
+                // Intel CPUを探す（価格順）
+                const intelCPUs = allParts.cpu
+                    .filter(cpu => cpu.name.toLowerCase().includes('intel') || cpu.name.toLowerCase().includes('core'))
+                    .sort((a, b) => a.price - b.price);
                 
-                // CPUが変わったので、関連パーツも再選択
-                adjustedRecommendations.cpu = downgradedCPU;
-                downgradedCPULast = downgradedCPU;
+                if (intelCPUs.length > 0) {
+                    const cheapestIntel = intelCPUs[0];
+                    console.log(`AMD→Intel変更試行: ${currentCPU.name} (¥${currentCPU.price}) → ${cheapestIntel.name} (¥${cheapestIntel.price})`);
+                    
+                    // 仮変更して合計金額をチェック
+                    const tempRecommendations = { ...adjustedRecommendations };
+                    tempRecommendations.cpu = cheapestIntel;
+                    
+                    // Intel互換パーツに変更
+                    const intelMotherboard = selectCompatibleMotherboard(allParts.motherboard, cheapestIntel);
+                    const intelMemory = selectCompatibleMemoryByCapacity(allParts.memory, requirements.ram, cheapestIntel.socket);
+                    const intelPSU = selectPSUForSystem(allParts.psu, cheapestIntel, adjustedRecommendations.gpu);
+                    
+                    if (intelMotherboard && intelMemory && intelPSU) {
+                        tempRecommendations.motherboard = intelMotherboard;
+                        tempRecommendations.memory = intelMemory;
+                        tempRecommendations.psu = intelPSU;
+                        
+                        const tempTotalPrice = Object.values(tempRecommendations).reduce((sum, part) => sum + (part ? part.price : 0), 0);
+                        
+                        if (tempTotalPrice < totalPrice) {
+                            console.log(`Intel構成採用: 合計 ¥${tempTotalPrice} (¥${totalPrice - tempTotalPrice}節約)`);
+                            adjustedRecommendations = tempRecommendations;
+                            totalPrice = tempTotalPrice;
+                            progressMade = true;
+                            
+                            if (totalPrice <= budget) {
+                                console.log('Intel構成で予算内に収まりました');
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Intel構成でも予算オーバーの場合、通常のCPUダウングレード
+            if (!progressMade) {
+                const downgradedCPU = downgradeCPUByBrand(adjustedRecommendations.cpu, allParts.cpu, 'any', adjustedRecommendations.cpu?.socket);
                 
-                // マザーボードを新しいCPUに合わせて再選択
-                adjustedRecommendations.motherboard = selectCompatibleMotherboard(allParts.motherboard, downgradedCPU);
-                
-                // メモリとPSUも再選択
-                adjustedRecommendations.memory = selectCompatibleMemoryByCapacity(allParts.memory, requirements.ram, downgradedCPU.socket);
-                adjustedRecommendations.psu = selectPSUForSystem(allParts.psu, downgradedCPU, adjustedRecommendations.gpu);
-                
-                totalPrice = Object.values(adjustedRecommendations).reduce((sum, part) => sum + (part ? part.price : 0), 0);
-                console.log(`CPU調整後: 合計 ¥${totalPrice}`);
-                progressMade = true;
-            } else {
-                console.log('CPUのこれ以上のダウングレードは不可能');
+                if (downgradedCPU && downgradedCPU !== downgradedCPULast) {
+                    console.log(`CPU通常ダウングレード: ${adjustedRecommendations.cpu.name} → ${downgradedCPU.name}`);
+                    
+                    adjustedRecommendations.cpu = downgradedCPU;
+                    downgradedCPULast = downgradedCPU;
+                    
+                    // 関連パーツ再選択
+                    adjustedRecommendations.motherboard = selectCompatibleMotherboard(allParts.motherboard, downgradedCPU);
+                    adjustedRecommendations.memory = selectCompatibleMemoryByCapacity(allParts.memory, requirements.ram, downgradedCPU.socket);
+                    adjustedRecommendations.psu = selectPSUForSystem(allParts.psu, downgradedCPU, adjustedRecommendations.gpu);
+                    
+                    totalPrice = Object.values(adjustedRecommendations).reduce((sum, part) => sum + (part ? part.price : 0), 0);
+                    console.log(`CPU調整後: 合計 ¥${totalPrice}`);
+                    progressMade = true;
+                }
             }
         } else {
-            // 奇数ステップ: GPUをダウングレード
-            const downgradedGPU = downgradeGPU(adjustedRecommendations.gpu, allParts.gpu, gpuBrand);
+            // 他の用途の場合は従来通り（CPU→GPU交互）
+            const isEvenStep = adjustmentStep % 2 === 0;
             
-            if (downgradedGPU && downgradedGPU !== downgradedGPULast) {
-                adjustedRecommendations.gpu = downgradedGPU;
-                downgradedGPULast = downgradedGPU;
-                // GPUが変わったのでPSUも再計算
-                adjustedRecommendations.psu = selectPSUForSystem(allParts.psu, adjustedRecommendations.cpu, downgradedGPU);
+            if (isEvenStep) {
+                // 偶数ステップ: CPUをダウングレード
+                const downgradedCPU = downgradeCPUByBrand(adjustedRecommendations.cpu, allParts.cpu, cpuBrand, adjustedRecommendations.cpu?.socket);
                 
-                totalPrice = Object.values(adjustedRecommendations).reduce((sum, part) => sum + (part ? part.price : 0), 0);
-                console.log(`GPU調整後: 合計 ¥${totalPrice}`);
-                progressMade = true;
+                if (downgradedCPU && downgradedCPU !== downgradedCPULast) {
+                    console.log(`CPU変更: ${adjustedRecommendations.cpu.name} → ${downgradedCPU.name}`);
+                    
+                    adjustedRecommendations.cpu = downgradedCPU;
+                    downgradedCPULast = downgradedCPU;
+                    
+                    // 関連パーツ再選択
+                    adjustedRecommendations.motherboard = selectCompatibleMotherboard(allParts.motherboard, downgradedCPU);
+                    adjustedRecommendations.memory = selectCompatibleMemoryByCapacity(allParts.memory, requirements.ram, downgradedCPU.socket);
+                    adjustedRecommendations.psu = selectPSUForSystem(allParts.psu, downgradedCPU, adjustedRecommendations.gpu);
+                    
+                    totalPrice = Object.values(adjustedRecommendations).reduce((sum, part) => sum + (part ? part.price : 0), 0);
+                    console.log(`CPU調整後: 合計 ¥${totalPrice}`);
+                    progressMade = true;
+                } else {
+                    console.log('CPUのこれ以上のダウングレードは不可能');
+                }
             } else {
-                console.log('GPUのこれ以上のダウングレードは不可能');
+                // 奇数ステップ: GPUをダウングレード
+                const downgradedGPU = downgradeGPU(adjustedRecommendations.gpu, allParts.gpu, gpuBrand);
+                
+                if (downgradedGPU && downgradedGPU !== downgradedGPULast) {
+                    adjustedRecommendations.gpu = downgradedGPU;
+                    downgradedGPULast = downgradedGPU;
+                    adjustedRecommendations.psu = selectPSUForSystem(allParts.psu, adjustedRecommendations.cpu, downgradedGPU);
+                    
+                    totalPrice = Object.values(adjustedRecommendations).reduce((sum, part) => sum + (part ? part.price : 0), 0);
+                    console.log(`GPU調整後: 合計 ¥${totalPrice}`);
+                    progressMade = true;
+                } else {
+                    console.log('GPUのこれ以上のダウングレードは不可能');
+                }
             }
         }
         
@@ -1131,4 +1705,280 @@ function adjustBudgetAutomatically(recommendations, allParts, budget, requiremen
     }
     
     return adjustedRecommendations;
+}
+
+// CPU+マザーボードセットを予算内で選択
+function selectCPUMotherboardSet(cpus, motherboards, budget, cpuBrand, specialLogic, usage, requirements) {
+    console.log(`CPU+マザーボードセット選択開始: 予算¥${budget}`);
+    
+    if (!cpus || cpus.length === 0 || !motherboards || motherboards.length === 0) {
+        console.error('CPUまたはマザーボードデータが不足');
+        return { cpu: null, motherboard: null, memory: null };
+    }
+    
+    // CPU候補を取得
+    let candidateCPUs = cpus;
+    
+    // 特別ロジック適用（Tarkov用X3D CPUなど）
+    if (specialLogic === 'x3d_cpu') {
+        candidateCPUs = cpus.filter(cpu => 
+            cpu.name.toLowerCase().includes('x3d') || 
+            cpu.name.toLowerCase().includes('3d')
+        );
+        if (candidateCPUs.length === 0) {
+            console.warn('X3D CPUが見つからないため、全CPUから選択');
+            candidateCPUs = cpus;
+        }
+    }
+    
+    // ブランドフィルタリング
+    if (cpuBrand && cpuBrand !== 'any') {
+        candidateCPUs = candidateCPUs.filter(cpu => {
+            const cpuName = cpu.name.toLowerCase();
+            if (cpuBrand === 'intel') {
+                return cpuName.includes('intel') || cpuName.includes('core');
+            } else if (cpuBrand === 'amd') {
+                return cpuName.includes('amd') || cpuName.includes('ryzen');
+            }
+            return true;
+        });
+    }
+    
+    console.log(`CPU候補数: ${candidateCPUs.length}`);
+    
+    // 各CPU + 互換マザーボード + メモリの組み合わせを評価
+    const validCombinations = [];
+    
+    for (const cpu of candidateCPUs) {
+        // 互換マザーボードを探す
+        const compatibleMBs = motherboards.filter(mb => mb.socket === cpu.socket);
+        
+        if (compatibleMBs.length === 0) {
+            console.warn(`${cpu.name}に互換マザーボードなし`);
+            continue;
+        }
+        
+        // 最安マザーボードを選択
+        const cheapestMB = compatibleMBs.sort((a, b) => a.price - b.price)[0];
+        
+        // 互換メモリを選択（実際のメモリデータから）
+        const memoryData = typeof PARTS_DATA !== 'undefined' ? PARTS_DATA.memory : 
+                          (typeof partsData !== 'undefined' ? partsData.memory : null);
+        const compatibleMemory = memoryData ? 
+            selectCompatibleMemoryByCapacity(memoryData, requirements.ram, cpu.socket) :
+            { name: "Default Memory", price: 5780, capacity: requirements.ram };
+        
+        const totalPrice = cpu.price + cheapestMB.price + compatibleMemory.price;
+        
+        if (totalPrice <= budget) {
+            validCombinations.push({
+                cpu,
+                motherboard: cheapestMB,
+                memory: compatibleMemory,
+                totalPrice,
+                budgetUtilization: totalPrice / budget
+            });
+        }
+    }
+    
+    console.log(`予算内の有効な組み合わせ: ${validCombinations.length}個`);
+    
+    if (validCombinations.length === 0) {
+        console.warn('予算内の組み合わせなし、最安構成を選択');
+        // 最安のCPU+マザーボード組み合わせを選択
+        const allCombinations = [];
+        for (const cpu of candidateCPUs) {
+            const compatibleMBs = motherboards.filter(mb => mb.socket === cpu.socket);
+            if (compatibleMBs.length > 0) {
+                const cheapestMB = compatibleMBs.sort((a, b) => a.price - b.price)[0];
+                const memoryData = typeof PARTS_DATA !== 'undefined' ? PARTS_DATA.memory : 
+                                  (typeof partsData !== 'undefined' ? partsData.memory : null);
+                const compatibleMemory = memoryData ? 
+                    selectCompatibleMemoryByCapacity(memoryData, requirements.ram, cpu.socket) :
+                    { name: "Default Memory", price: 5780, capacity: requirements.ram };
+                
+                allCombinations.push({
+                    cpu,
+                    motherboard: cheapestMB,
+                    memory: compatibleMemory,
+                    totalPrice: cpu.price + cheapestMB.price + compatibleMemory.price
+                });
+            }
+        }
+        
+        if (allCombinations.length > 0) {
+            const cheapest = allCombinations.sort((a, b) => a.totalPrice - b.totalPrice)[0];
+            console.log(`最安構成選択: ${cheapest.cpu.name} + ${cheapest.motherboard.name} (¥${cheapest.totalPrice})`);
+            return cheapest;
+        }
+    }
+    
+    // ゲーム(汎用)でブランド指定なしの場合、Intel優先
+    if (usage === 'gaming' && cpuBrand === 'any') {
+        const intelCombinations = validCombinations.filter(combo => 
+            combo.cpu.name.toLowerCase().includes('intel') || 
+            combo.cpu.name.toLowerCase().includes('core')
+        );
+        
+        if (intelCombinations.length > 0) {
+            // 予算利用率が最も高いIntel構成を選択
+            const bestIntel = intelCombinations.sort((a, b) => b.budgetUtilization - a.budgetUtilization)[0];
+            console.log(`Intel優先選択: ${bestIntel.cpu.name} + ${bestIntel.motherboard.name} (¥${bestIntel.totalPrice})`);
+            return bestIntel;
+        }
+    }
+    
+    // 予算利用率が最も高い組み合わせを選択
+    const bestCombination = validCombinations.sort((a, b) => b.budgetUtilization - a.budgetUtilization)[0];
+    console.log(`最適組み合わせ選択: ${bestCombination.cpu.name} + ${bestCombination.motherboard.name} (¥${bestCombination.totalPrice})`);
+    
+    return bestCombination;
+}
+
+// ゲーム(汎用)用途専用の予算調整
+function adjustBudgetForGaming(recommendations, allParts, budget, requirements) {
+    console.log('=== ゲーム(汎用)専用予算調整開始 ===');
+    console.log(`目標予算: ¥${budget}`);
+    
+    let adjustedRecommendations = { ...recommendations };
+    let totalPrice = Object.values(adjustedRecommendations).reduce((sum, part) => sum + (part ? part.price : 0), 0);
+    
+    console.log(`調整前合計: ¥${totalPrice} (¥${totalPrice - budget} オーバー)`);
+    
+    // メモリとストレージは固定（ダウングレード対象外）
+    const fixedParts = {
+        memory: adjustedRecommendations.memory,
+        storage: adjustedRecommendations.storage
+    };
+    
+    console.log('固定パーツ（ダウングレード対象外）:');
+    console.log(`- メモリ: ${fixedParts.memory?.name} (¥${fixedParts.memory?.price})`);
+    console.log(`- ストレージ: ${fixedParts.storage?.name} (¥${fixedParts.storage?.price})`);
+    
+    // ダウングレード対象パーツリスト（優先順位順）
+    const downgradeParts = [
+        { key: 'gpu', name: 'GPU' },
+        { key: 'cpu', name: 'CPU' },
+        { key: 'motherboard', name: 'マザーボード' },
+        { key: 'cooler', name: 'CPUクーラー' },
+        { key: 'psu', name: 'PSU' },
+        { key: 'case', name: 'PCケース' }
+    ];
+    
+    let adjustmentLoop = 0;
+    const maxAdjustments = 20;
+    
+    while (totalPrice > budget && adjustmentLoop < maxAdjustments) {
+        adjustmentLoop++;
+        console.log(`\n--- 調整ループ ${adjustmentLoop} ---`);
+        console.log(`現在の合計: ¥${totalPrice} (¥${totalPrice - budget} オーバー)`);
+        
+        let progressMade = false;
+        
+        for (const partInfo of downgradeParts) {
+            const { key, name } = partInfo;
+            const currentPart = adjustedRecommendations[key];
+            
+            if (!currentPart) continue;
+            
+            console.log(`${name}のダウングレードを試行: ${currentPart.name} (¥${currentPart.price})`);
+            
+            // 最安パーツを探す
+            const cheapestPart = findCheapestCompatiblePart(allParts[key], currentPart, adjustedRecommendations, key);
+            
+            if (cheapestPart && cheapestPart.price < currentPart.price) {
+                console.log(`${name}ダウングレード: ${currentPart.name} → ${cheapestPart.name} (¥${currentPart.price - cheapestPart.price} 節約)`);
+                
+                adjustedRecommendations[key] = cheapestPart;
+                
+                // CPU変更の場合は関連パーツも調整
+                if (key === 'cpu') {
+                    adjustedRecommendations.motherboard = selectCompatibleMotherboard(allParts.motherboard, cheapestPart);
+                    adjustedRecommendations.memory = selectCompatibleMemoryByCapacity(allParts.memory, requirements.ram, cheapestPart.socket);
+                    adjustedRecommendations.psu = selectPSUForSystem(allParts.psu, cheapestPart, adjustedRecommendations.gpu);
+                    console.log('CPU変更により関連パーツも再選択');
+                }
+                
+                // マザーボード変更の場合はメモリも調整
+                if (key === 'motherboard') {
+                    adjustedRecommendations.memory = selectCompatibleMemoryByCapacity(allParts.memory, requirements.ram, adjustedRecommendations.cpu.socket);
+                }
+                
+                totalPrice = Object.values(adjustedRecommendations).reduce((sum, part) => sum + (part ? part.price : 0), 0);
+                console.log(`調整後合計: ¥${totalPrice}`);
+                
+                progressMade = true;
+                
+                if (totalPrice <= budget) {
+                    console.log('🎉 予算内に収まりました！');
+                    break;
+                }
+            } else {
+                console.log(`${name}: これ以上安いパーツなし`);
+            }
+        }
+        
+        if (!progressMade) {
+            console.log('⚠️ すべてのパーツが最安値です。これ以上の調整は不可能。');
+            break;
+        }
+        
+        if (totalPrice <= budget) {
+            break;
+        }
+    }
+    
+    const finalOverage = totalPrice - budget;
+    if (finalOverage > 0) {
+        console.log(`\n🔴 最終結果: ¥${finalOverage} の予算オーバー（最安構成）`);
+        console.log('これは最小限の構成です。予算を増やすことをお勧めします。');
+    } else {
+        console.log(`\n🟢 予算調整成功: 最終合計 ¥${totalPrice} (¥${budget - totalPrice} 余り)`);
+    }
+    
+    console.log('=== ゲーム(汎用)専用予算調整完了 ===');
+    return adjustedRecommendations;
+}
+
+// 互換性を考慮した最安パーツを探す
+function findCheapestCompatiblePart(partsList, currentPart, recommendations, partKey) {
+    if (!partsList || partsList.length === 0) return null;
+    
+    // 現在のパーツより安いものをフィルタ
+    const cheaperParts = partsList.filter(part => part.price < currentPart.price);
+    
+    if (cheaperParts.length === 0) return null;
+    
+    // パーツタイプ別の互換性チェック
+    let compatibleParts = cheaperParts;
+    
+    switch (partKey) {
+        case 'motherboard':
+            // CPUソケット互換性
+            compatibleParts = cheaperParts.filter(mb => mb.socket === recommendations.cpu?.socket);
+            break;
+        case 'memory':
+            // CPUソケット互換性
+            const requiredMemoryType = getCompatibleMemoryType(recommendations.cpu?.socket);
+            compatibleParts = cheaperParts.filter(mem => mem.type.includes(requiredMemoryType));
+            break;
+        case 'psu':
+            // 最低電力要件
+            const minWattage = 500; // 最低限の電力
+            compatibleParts = cheaperParts.filter(psu => {
+                const wattage = parseInt(psu.wattage.replace(/[^\d]/g, ''));
+                return wattage >= minWattage;
+            });
+            break;
+        case 'case':
+            // マザーボードフォームファクター互換性
+            compatibleParts = cheaperParts.filter(pcCase => {
+                const mbFormFactor = recommendations.motherboard?.formFactor;
+                return !mbFormFactor || pcCase.formFactor.includes(mbFormFactor);
+            });
+            break;
+    }
+    
+    // 最安の互換パーツを返す
+    return compatibleParts.length > 0 ? compatibleParts.sort((a, b) => a.price - b.price)[0] : null;
 }

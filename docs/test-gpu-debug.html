@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GPU Selection Debug</title>
+</head>
+<body>
+    <h1>GPU Selection Debug</h1>
+    <div id="debug-output"></div>
+    
+    <script src="parts-data.js"></script>
+    <script src="pc-recommender.js"></script>
+    <script>
+        console.log('=== GPU Debug Test ===');
+        
+        // RTX 5090系のGPUを抽出
+        const rtx5090GPUs = PARTS_DATA.gpu.filter(gpu => 
+            gpu.name.toLowerCase().includes('5090')
+        );
+        
+        console.log('RTX 5090 variants found:', rtx5090GPUs.length);
+        rtx5090GPUs.forEach((gpu, index) => {
+            console.log(`${index + 1}. ${gpu.name} - ¥${gpu.price}`);
+        });
+        
+        // 100万円予算でのGPU選択テスト
+        const budget = 1000000;
+        const selectedGPU = selectBestGPU(rtx5090GPUs, budget);
+        
+        console.log('Budget: ¥1,000,000');
+        console.log('Selected GPU:', selectedGPU);
+        
+        // 結果をページに表示
+        const output = document.getElementById('debug-output');
+        output.innerHTML = `
+            <h2>RTX 5090 Variants Found: ${rtx5090GPUs.length}</h2>
+            ${rtx5090GPUs.map((gpu, index) => 
+                `<p>${index + 1}. ${gpu.name} - ¥${gpu.price.toLocaleString()}</p>`
+            ).join('')}
+            <h2>Selected with ¥1,000,000 budget:</h2>
+            <p><strong>${selectedGPU.name} - ¥${selectedGPU.price.toLocaleString()}</strong></p>
+        `;
+    </script>
+</body>
+</html>

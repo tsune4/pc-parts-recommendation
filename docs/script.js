@@ -251,6 +251,38 @@ function createPartRow(category, part) {
 
 // --- Initialization ---
 
+// CPU ブランド制御のための変数
+let savedCpuBrand = null;
+
+// 用途変更時のCPUブランド制御
+function handleUsageChange(usageValue) {
+    const cpuBrandSelect = document.getElementById('cpu-brand');
+    
+    if (usageValue === 'tarkov') {
+        // 現在の選択を保存（Tarkov以外の場合のみ）
+        if (cpuBrandSelect.value !== 'amd') {
+            savedCpuBrand = cpuBrandSelect.value;
+        }
+        
+        // AMDに強制変更
+        cpuBrandSelect.value = 'amd';
+        cpuBrandSelect.disabled = true;
+        cpuBrandSelect.classList.add('tarkov-disabled');
+        
+        console.log('Tarkov選択: CPUブランドをAMDに固定');
+    } else {
+        // Tarkov以外の場合は制限解除
+        cpuBrandSelect.disabled = false;
+        cpuBrandSelect.classList.remove('tarkov-disabled');
+        
+        // 保存されたブランドがあれば復元
+        if (savedCpuBrand && savedCpuBrand !== 'amd') {
+            cpuBrandSelect.value = savedCpuBrand;
+            console.log(`CPU ブランドを ${savedCpuBrand} に復元`);
+        }
+    }
+}
+
 // This function sets up the entire application once the DOM is ready.
 function initializeApp() {
     // Set the initial language from localStorage or default to 'ja'
@@ -263,6 +295,18 @@ function initializeApp() {
         languageSelector.value = currentLanguage; // Reflect the current language in the dropdown
         languageSelector.addEventListener('change', (e) => {
             changeLanguage(e.target.value);
+        });
+    }
+
+    // Set up usage selector event listener for CPU brand control
+    const usageSelector = document.getElementById('usage');
+    if (usageSelector) {
+        // 初期状態をチェック
+        handleUsageChange(usageSelector.value);
+        
+        // 変更時のイベントリスナー追加
+        usageSelector.addEventListener('change', (e) => {
+            handleUsageChange(e.target.value);
         });
     }
 
