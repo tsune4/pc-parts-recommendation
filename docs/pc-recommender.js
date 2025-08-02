@@ -4,6 +4,61 @@
 const parseCache = new Map();
 const socketNormalizeCache = new Map();
 
+// ブランド判定最適化用キャッシュとマップ
+const brandCache = new Map();
+const CPU_BRAND_KEYWORDS = new Map([
+    ['intel', ['intel', 'core']],
+    ['amd', ['amd', 'ryzen']]
+]);
+const GPU_BRAND_KEYWORDS = new Map([
+    ['nvidia', ['geforce', 'rtx', 'gtx']],
+    ['amd', ['radeon', 'rx']]
+]);
+
+// 高速ブランド判定関数
+function getBrand(name, brandKeywordsMap) {
+    if (!name) return null;
+    
+    const cacheKey = `${name}_${brandKeywordsMap === CPU_BRAND_KEYWORDS ? 'cpu' : 'gpu'}`;
+    if (brandCache.has(cacheKey)) {
+        return brandCache.get(cacheKey);
+    }
+    
+    const lowerName = name.toLowerCase();
+    let result = null;
+    
+    for (const [brand, keywords] of brandKeywordsMap) {
+        if (keywords.some(keyword => lowerName.includes(keyword))) {
+            result = brand;
+            break;
+        }
+    }
+    
+    brandCache.set(cacheKey, result);
+    return result;
+}
+
+function isCPUBrand(cpu, targetBrand) {
+    if (!cpu || !targetBrand || targetBrand === 'any') return true;
+    return getBrand(cpu.name, CPU_BRAND_KEYWORDS) === targetBrand;
+}
+
+function isGPUBrand(gpu, targetBrand) {
+    if (!gpu || !targetBrand || targetBrand === 'any') return true;
+    return getBrand(gpu.name, GPU_BRAND_KEYWORDS) === targetBrand;
+}
+
+function isX3DCPU(cpu) {
+    if (!cpu) return false;
+    const lowerName = cpu.name.toLowerCase();
+    return lowerName.includes('x3d') || lowerName.includes('3d');
+}
+
+function isSpecificX3DCPU(cpu, model) {
+    if (!cpu) return false;
+    return cpu.name.toLowerCase().includes(model.toLowerCase());
+}
+
 // 用途別の重み設定と特別ロジック
 function getUsageRecommendations(usage) {
     const recommendations = {
@@ -67,10 +122,7 @@ function selectBestGPU(gpus, budget, brand = 'any') {
         
         if (samePriceGPUs.length > 1) {
             // 同価格のGPUが複数ある場合、AMD優先
-            const amdGPU = samePriceGPUs.find(gpu => 
-                gpu.name.toLowerCase().includes('radeon') || 
-                gpu.name.toLowerCase().includes('rx')
-            );
+            const amdGPU = samePriceGPUs.find(gpu => isGPUBrand(gpu, 'amd'));
             
             if (amdGPU) {
                 console.log(`同価格GPU検出、AMD優先選択: ${amdGPU.name} (¥${amdGPU.price})`);
@@ -214,15 +266,7 @@ function selectBestCPU(cpus, budget, brand = 'any', usage = 'gaming') {
         console.log(`CPUメーカー指定: ${brand.toUpperCase()} - 最安モデルを選択（予算超過許容）`);
         
         // 指定されたブランドのCPUをフィルタ
-        const brandCPUs = cpus.filter(cpu => {
-            const cpuName = cpu.name.toLowerCase();
-            if (brand === 'intel') {
-                return cpuName.includes('intel') || cpuName.includes('core');
-            } else if (brand === 'amd') {
-                return cpuName.includes('amd') || cpuName.includes('ryzen');
-            }
-            return true;
-        });
+        const brandCPUs = cpus.filter(cpu => isCPUBrand(cpu, brand));
         
         if (brandCPUs.length > 0) {
             // 指定ブランドの最安モデルを選択（予算無視）
@@ -249,16 +293,10 @@ function selectBestCPU(cpus, budget, brand = 'any', usage = 'gaming') {
         console.log('ゲーム(汎用) CPU選択: 予算効率重視で最適ブランドを選択');
         
         // Intel CPUを探す
-        const intelCPUs = withinBudget.filter(cpu => 
-            cpu.name.toLowerCase().includes('intel') || 
-            cpu.name.toLowerCase().includes('core')
-        );
+        const intelCPUs = withinBudget.filter(cpu => isCPUBrand(cpu, 'intel'));
         
         // AMD CPUを探す
-        const amdCPUs = withinBudget.filter(cpu => 
-            cpu.name.toLowerCase().includes('amd') || 
-            cpu.name.toLowerCase().includes('ryzen')
-        );
+        const amdCPUs = withinBudget.filter(cpu => isCPUBrand(cpu, 'amd'));
         
         // 両方のブランドで最高性能CPUを取得
         const bestIntel = intelCPUs.length > 0 ? intelCPUs.sort((a, b) => b.price - a.price)[0] : null;
@@ -296,15 +334,7 @@ function selectCPUByBrand(cpus, budget, brand, specialLogic = 'general', usage =
     let filteredCPUs = cpus;
     
     if (brand && brand !== 'any') {
-        filteredCPUs = cpus.filter(cpu => {
-            const cpuName = cpu.name.toLowerCase();
-            if (brand === 'intel') {
-                return cpuName.includes('intel') || cpuName.includes('core');
-            } else if (brand === 'amd') {
-                return cpuName.includes('amd') || cpuName.includes('ryzen');
-            }
-            return true;
-        });
+        filteredCPUs = cpus.filter(cpu => isCPUBrand(cpu, brand));
         
         console.log(`Filtered ${filteredCPUs.length} ${brand.toUpperCase()} CPUs from ${cpus.length} total CPUs`);
         
@@ -328,10 +358,7 @@ function selectCPUByBrand(cpus, budget, brand, specialLogic = 'general', usage =
     
     // X3D CPU専用ロジック (Escape From Tarkov用) - インテリジェントなX3D選択
     if (specialLogic === 'x3d_cpu') {
-        const x3dCPUs = filteredCPUs.filter(cpu => 
-            cpu.name.toLowerCase().includes('x3d') || 
-            cpu.name.toLowerCase().includes('3d')
-        );
+        const x3dCPUs = filteredCPUs.filter(cpu => isX3DCPU(cpu));
         
         if (x3dCPUs.length > 0) {
             console.log(`Tarkov専用: X3D CPUのみから選択 (${x3dCPUs.length}個のX3D CPUを発見)`);
@@ -341,7 +368,7 @@ function selectCPUByBrand(cpus, budget, brand, specialLogic = 'general', usage =
             
             // 7800X3Dをデフォルトとして探す
             const ryzen7800X3D = sortedX3DCPUs.find(cpu => 
-                cpu.name.toLowerCase().includes('7800x3d')
+                isSpecificX3DCPU(cpu, '7800x3d')
             );
             
             if (ryzen7800X3D) {
@@ -369,15 +396,7 @@ function selectGPUByBrand(gpus, budget, brand, specialLogic = 'general') {
     let filteredGPUs = gpus;
     
     if (brand && brand !== 'any') {
-        filteredGPUs = gpus.filter(gpu => {
-            const gpuName = gpu.name.toLowerCase();
-            if (brand === 'nvidia') {
-                return gpuName.includes('geforce') || gpuName.includes('rtx') || gpuName.includes('gtx');
-            } else if (brand === 'amd') {
-                return gpuName.includes('radeon') || gpuName.includes('rx');
-            }
-            return true;
-        });
+        filteredGPUs = gpus.filter(gpu => isGPUBrand(gpu, brand));
         
         console.log(`Filtered ${filteredGPUs.length} ${brand.toUpperCase()} GPUs from ${gpus.length} total GPUs`);
     }
@@ -854,9 +873,7 @@ function upgradeTarkovX3DCPU(currentCPU, allCPUs, budget, currentGPU) {
     if (!allCPUs || allCPUs.length === 0 || !currentCPU) return null;
     
     // X3D CPUのみをフィルタリング
-    const x3dCPUs = allCPUs.filter(cpu => 
-        cpu.name.toLowerCase().includes('x3d') || 
-        cpu.name.toLowerCase().includes('3d')
+    const x3dCPUs = allCPUs.filter(cpu => isX3DCPU(cpu)
     );
     
     if (x3dCPUs.length === 0) {
@@ -887,7 +904,7 @@ function upgradeTarkovX3DCPU(currentCPU, allCPUs, budget, currentGPU) {
         
         // 9800X3Dを最優先で探す
         const ryzen9800X3D = sortedX3DCPUs.find(cpu => 
-            cpu.name.toLowerCase().includes('9800x3d')
+            isSpecificX3DCPU(cpu, '9800x3d')
         );
         
         if (ryzen9800X3D && ryzen9800X3D.price > currentCPU.price && ryzen9800X3D.price <= currentCPU.price + budget) {
@@ -897,7 +914,7 @@ function upgradeTarkovX3DCPU(currentCPU, allCPUs, budget, currentGPU) {
         
         // 9800X3Dがない場合は9950X3Dを探す
         const ryzen9950X3D = sortedX3DCPUs.find(cpu => 
-            cpu.name.toLowerCase().includes('9950x3d')
+            isSpecificX3DCPU(cpu, '9950x3d')
         );
         
         if (ryzen9950X3D && ryzen9950X3D.price > currentCPU.price && ryzen9950X3D.price <= currentCPU.price + budget) {
@@ -927,14 +944,7 @@ function upgradeGPU(currentGPU, allGPUs, gpuBrand, budget) {
     // ブランド制限があるかチェック
     let compatibleGPUs = allGPUs;
     if (gpuBrand && gpuBrand !== 'any') {
-        compatibleGPUs = allGPUs.filter(gpu => {
-            if (gpuBrand === 'nvidia') {
-                return gpu.name.toLowerCase().includes('geforce') || gpu.name.toLowerCase().includes('rtx');
-            } else if (gpuBrand === 'amd') {
-                return gpu.name.toLowerCase().includes('radeon');
-            }
-            return true;
-        });
+        compatibleGPUs = allGPUs.filter(gpu => isGPUBrand(gpu, gpuBrand));
     }
     
     // 単一パスで最適化されたGPUアップグレード処理
@@ -959,14 +969,7 @@ function upgradeCPU(currentCPU, allCPUs, cpuBrand, budget) {
     // ブランド制限があるかチェック
     let compatibleCPUs = allCPUs;
     if (cpuBrand && cpuBrand !== 'any') {
-        compatibleCPUs = allCPUs.filter(cpu => {
-            if (cpuBrand === 'intel') {
-                return cpu.name.toLowerCase().includes('intel');
-            } else if (cpuBrand === 'amd') {
-                return cpu.name.toLowerCase().includes('amd');
-            }
-            return true;
-        });
+        compatibleCPUs = allCPUs.filter(cpu => isCPUBrand(cpu, cpuBrand));
     }
     
     // 単一パスで最適化されたCPUアップグレード処理
@@ -1072,93 +1075,6 @@ function parseCapacityToGB(capacityStr) {
     return num; // GBが単位でない場合も数値をそのまま返す
 }
 
-// CPU+マザーボードセットを選択（CPUメーカー指定時の予算超過許容）
-function selectCPUMotherboardSet(cpus, motherboards, budget, cpuBrand, specialLogic, usage, requirements) {
-    console.log(`CPU+マザーボードセット選択開始: 予算¥${budget}, CPUブランド: ${cpuBrand}`);
-    
-    if (!cpus || cpus.length === 0 || !motherboards || motherboards.length === 0) {
-        console.error('CPUまたはマザーボードデータが不足');
-        return { cpu: null, motherboard: null, memory: null };
-    }
-    
-    let selectedCPU = null;
-    let selectedMotherboard = null;
-    let selectedMemory = null;
-    
-    // CPUメーカーが指定されている場合の特別処理
-    if (cpuBrand && cpuBrand !== 'any') {
-        console.log(`⚡ CPUメーカー指定 (${cpuBrand.toUpperCase()}): 予算超過を許容して最安モデルを選択`);
-        
-        // 指定されたブランドのCPUをフィルタ
-        const brandCPUs = cpus.filter(cpu => {
-            const cpuName = cpu.name.toLowerCase();
-            if (cpuBrand === 'intel') {
-                return cpuName.includes('intel') || cpuName.includes('core');
-            } else if (cpuBrand === 'amd') {
-                return cpuName.includes('amd') || cpuName.includes('ryzen');
-            }
-            return true;
-        });
-        
-        if (brandCPUs.length > 0) {
-            // X3D特別ロジックがある場合はそれを優先
-            if (specialLogic === 'x3d_cpu') {
-                selectedCPU = selectCPUByBrand(cpus, budget * 10, cpuBrand, specialLogic, usage); // 予算を大きくして制限を無効化
-            } else {
-                // 指定ブランドの最安モデルを選択（予算無視）
-                selectedCPU = brandCPUs.sort((a, b) => a.price - b.price)[0];
-                console.log(`${cpuBrand.toUpperCase()}最安モデル選択: ${selectedCPU.name} (¥${selectedCPU.price})`);
-            }
-        } else {
-            console.warn(`指定された${cpuBrand.toUpperCase()}ブランドのCPUが見つかりません`);
-            // フォールバック: 通常のCPU選択
-            selectedCPU = selectCPUByBrand(cpus, budget, 'any', specialLogic, usage);
-        }
-    } else {
-        // CPUメーカー指定なしの場合は通常の予算制限付き選択
-        console.log('CPUメーカー指定なし: 予算内で最適なCPUを選択');
-        selectedCPU = selectCPUByBrand(cpus, budget, cpuBrand, specialLogic, usage);
-    }
-    
-    if (!selectedCPU) {
-        console.error('CPU選択に失敗しました');
-        return { cpu: null, motherboard: null, memory: null };
-    }
-    
-    // CPUに適合するマザーボードを選択（最安優先）
-    selectedMotherboard = selectCompatibleMotherboard(motherboards, selectedCPU);
-    if (!selectedMotherboard) {
-        console.error(`CPU ${selectedCPU.name} に適合するマザーボードが見つかりません`);
-        return { cpu: selectedCPU, motherboard: null, memory: null };
-    }
-    
-    // CPUソケットに適合するメモリを選択
-    selectedMemory = selectCompatibleMemoryByCapacity(PARTS_DATA.memory, requirements.ram, selectedCPU.socket);
-    if (!selectedMemory) {
-        console.warn('適合するメモリが見つかりません');
-    }
-    
-    const totalCost = selectedCPU.price + selectedMotherboard.price + (selectedMemory?.price || 0);
-    const overBudget = totalCost - budget;
-    
-    console.log('CPU+マザーボード+メモリセット選択完了:');
-    console.log(`- CPU: ${selectedCPU.name} (¥${selectedCPU.price})`);
-    console.log(`- マザーボード: ${selectedMotherboard.name} (¥${selectedMotherboard.price})`);
-    console.log(`- メモリ: ${selectedMemory?.name || 'なし'} (¥${selectedMemory?.price || 0})`);
-    console.log(`セット合計: ¥${totalCost} (予算¥${budget})`);
-    
-    if (overBudget > 0 && cpuBrand && cpuBrand !== 'any') {
-        console.log(`💰 CPUメーカー指定により¥${overBudget}の予算超過を許容`);
-    } else if (overBudget > 0) {
-        console.warn(`⚠️ 予算¥${overBudget}超過 - 他のパーツで調整が必要`);
-    }
-    
-    return {
-        cpu: selectedCPU,
-        motherboard: selectedMotherboard,
-        memory: selectedMemory
-    };
-}
 
 // メイン推奨機能 - プロのPCビルダーアシスタント版
 function getRecommendations(requirements) {
@@ -1429,15 +1345,7 @@ function downgradeCPUByBrand(currentCPU, allCPUs, cpuBrand, requiredSocket) {
     // ブランドフィルタリング
     let filteredCPUs = allCPUs;
     if (cpuBrand && cpuBrand !== 'any') {
-        filteredCPUs = allCPUs.filter(cpu => {
-            const cpuName = cpu.name.toLowerCase();
-            if (cpuBrand === 'intel') {
-                return cpuName.includes('intel') || cpuName.includes('core');
-            } else if (cpuBrand === 'amd') {
-                return cpuName.includes('amd') || cpuName.includes('ryzen');
-            }
-            return true;
-        });
+        filteredCPUs = allCPUs.filter(cpu => isCPUBrand(cpu, cpuBrand));
     }
     
     // 現在のCPUと同じソケットのCPUを価格順でソート
@@ -1469,15 +1377,7 @@ function downgradeGPU(currentGPU, allGPUs, gpuBrand) {
     // ブランドフィルタリング
     let filteredGPUs = allGPUs;
     if (gpuBrand && gpuBrand !== 'any') {
-        filteredGPUs = allGPUs.filter(gpu => {
-            const gpuName = gpu.name.toLowerCase();
-            if (gpuBrand === 'nvidia') {
-                return gpuName.includes('geforce') || gpuName.includes('rtx') || gpuName.includes('gtx');
-            } else if (gpuBrand === 'amd') {
-                return gpuName.includes('radeon') || gpuName.includes('rx');
-            }
-            return true;
-        });
+        filteredGPUs = allGPUs.filter(gpu => isGPUBrand(gpu, gpuBrand));
     }
     
     // 価格順でソート（高価格順）
@@ -1508,13 +1408,12 @@ function adjustBudgetAutomatically(recommendations, allParts, budget, requiremen
         console.log('ゲーム(汎用)用途: Intel CPUへの変更を試行');
         
         const currentCPU = adjustedRecommendations.cpu;
-        const isCurrentAMD = currentCPU && (currentCPU.name.toLowerCase().includes('amd') || currentCPU.name.toLowerCase().includes('ryzen'));
+        const isCurrentAMD = currentCPU && isCPUBrand(currentCPU, 'amd');
         
         if (isCurrentAMD) {
             // Intel CPUを探す
             const intelCPUs = allParts.cpu.filter(cpu => 
-                cpu.name.toLowerCase().includes('intel') || 
-                cpu.name.toLowerCase().includes('core')
+                isCPUBrand(cpu, 'intel')
             );
             
             if (intelCPUs.length > 0) {
@@ -1584,12 +1483,12 @@ function adjustBudgetAutomatically(recommendations, allParts, budget, requiremen
             
             // 現在のCPUがAMDの場合、Intelに変更を試す
             const currentCPU = adjustedRecommendations.cpu;
-            const isCurrentAMD = currentCPU && (currentCPU.name.toLowerCase().includes('amd') || currentCPU.name.toLowerCase().includes('ryzen'));
+            const isCurrentAMD = currentCPU && isCPUBrand(currentCPU, 'amd');
             
             if (isCurrentAMD && adjustmentStep <= 3) {
                 // Intel CPUを探す（価格順）
                 const intelCPUs = allParts.cpu
-                    .filter(cpu => cpu.name.toLowerCase().includes('intel') || cpu.name.toLowerCase().includes('core'))
+                    .filter(cpu => isCPUBrand(cpu, 'intel'))
                     .sort((a, b) => a.price - b.price);
                 
                 if (intelCPUs.length > 0) {
@@ -1721,9 +1620,7 @@ function selectCPUMotherboardSet(cpus, motherboards, budget, cpuBrand, specialLo
     
     // 特別ロジック適用（Tarkov用X3D CPUなど）
     if (specialLogic === 'x3d_cpu') {
-        candidateCPUs = cpus.filter(cpu => 
-            cpu.name.toLowerCase().includes('x3d') || 
-            cpu.name.toLowerCase().includes('3d')
+        candidateCPUs = cpus.filter(cpu => isX3DCPU(cpu)
         );
         if (candidateCPUs.length === 0) {
             console.warn('X3D CPUが見つからないため、全CPUから選択');
@@ -1733,15 +1630,7 @@ function selectCPUMotherboardSet(cpus, motherboards, budget, cpuBrand, specialLo
     
     // ブランドフィルタリング
     if (cpuBrand && cpuBrand !== 'any') {
-        candidateCPUs = candidateCPUs.filter(cpu => {
-            const cpuName = cpu.name.toLowerCase();
-            if (cpuBrand === 'intel') {
-                return cpuName.includes('intel') || cpuName.includes('core');
-            } else if (cpuBrand === 'amd') {
-                return cpuName.includes('amd') || cpuName.includes('ryzen');
-            }
-            return true;
-        });
+        candidateCPUs = candidateCPUs.filter(cpu => isCPUBrand(cpu, cpuBrand));
     }
     
     console.log(`CPU候補数: ${candidateCPUs.length}`);
@@ -1816,7 +1705,7 @@ function selectCPUMotherboardSet(cpus, motherboards, budget, cpuBrand, specialLo
     // ゲーム(汎用)でブランド指定なしの場合、Intel優先
     if (usage === 'gaming' && cpuBrand === 'any') {
         const intelCombinations = validCombinations.filter(combo => 
-            combo.cpu.name.toLowerCase().includes('intel') || 
+            isCPUBrand(combo.cpu, 'intel') || 
             combo.cpu.name.toLowerCase().includes('core')
         );
         
