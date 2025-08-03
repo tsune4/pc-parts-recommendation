@@ -137,13 +137,6 @@ const PARTS_DATA = {
   ],
   "motherboard": [
     {
-      "name": "MSI PRO B760M-E DDR4 パソコン工房限定モデル",
-      "price": 7980,
-      "socket": "LGA1700",
-      "chipset": "B760",
-      "formFactor": "MicroATX"
-    },
-    {
       "name": "ASRock B760M Pro RS WiFi White (B760 1700 MicroATX) ドスパラ限定モデル",
       "price": 12800,
       "socket": "LGA1700",
@@ -243,27 +236,6 @@ const PARTS_DATA = {
     }
   ],
   "memory": [
-    {
-      "name": "CFD W4U3200CS-8G [DDR4 PC4-25600 8GB 2枚組]",
-      "price": 4880,
-      "capacity": "8GB×2",
-      "speed": "PC4-25600(DDR4-3200)",
-      "type": "DDR4 SDRAM"
-    },
-    {
-      "name": "CFD W4U3200CS-16G [DDR4 PC4-25600 16GB 2枚組]",
-      "price": 7191,
-      "capacity": "16GB×2",
-      "speed": "PC4-25600(DDR4-3200)",
-      "type": "DDR4 SDRAM"
-    },
-    {
-      "name": "Corsair CMK64GX4M2E3200C16 [DDR4 PC4-25600 32GB 2枚組]",
-      "price": 15980,
-      "capacity": "32GB×2",
-      "speed": "PC4-25600(DDR4-3200)",
-      "type": "DDR4 SDRAM"
-    },
     {
       "name": "crucial CT16G56C46U5 [DDR5 PC5-44800 16GB]",
       "price": 5780,
