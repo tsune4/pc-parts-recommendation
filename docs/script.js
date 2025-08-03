@@ -71,32 +71,22 @@ form.addEventListener('submit', async (e) => {
     }
 });
 
-// ローディング表示
-function showLoading() {
-    loadingElement.classList.remove('hidden');
+// UI表示状態の統合管理
+function toggleElement(element, show) {
+    if (show) {
+        element.classList.remove('hidden');
+    } else {
+        element.classList.add('hidden');
+    }
 }
 
-function hideLoading() {
-    loadingElement.classList.add('hidden');
-}
-
-// 結果表示
-function showResults() {
-    resultsSection.classList.remove('hidden');
-}
-
-function hideResults() {
-    resultsSection.classList.add('hidden');
-}
-
-// エラー表示
-function showError() {
-    errorMessage.classList.remove('hidden');
-}
-
-function hideError() {
-    errorMessage.classList.add('hidden');
-}
+// 簡潔なヘルパー関数
+const showLoading = () => toggleElement(loadingElement, true);
+const hideLoading = () => toggleElement(loadingElement, false);
+const showResults = () => toggleElement(resultsSection, true);
+const hideResults = () => toggleElement(resultsSection, false);
+const showError = () => toggleElement(errorMessage, true);
+const hideError = () => toggleElement(errorMessage, false);
 
 // 価格フォーマット
 function formatPrice(price) {

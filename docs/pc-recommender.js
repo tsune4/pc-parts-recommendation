@@ -755,81 +755,9 @@ function selectCheapestPart(parts) {
     return parts.sort((a, b) => a.price - b.price)[0];
 }
 
-// 互換性のあるマザーボードを選択（最安優先）
-function selectCompatibleMotherboard(motherboards, cpu) {
-    if (!motherboards || motherboards.length === 0 || !cpu) return null;
-    
-    const compatibleMotherboards = motherboards.filter(mb => mb.socket === cpu.socket);
-    if (compatibleMotherboards.length === 0) {
-        console.warn(`警告: CPU ${cpu.name} (${cpu.socket}) に適合するマザーボードが見つかりません`);
-        return null;
-    }
-    
-    // 最安価のマザーボードを選択
-    const cheapest = compatibleMotherboards.sort((a, b) => a.price - b.price)[0];
-    console.log(`マザーボード選択: ${cheapest.name} (${cheapest.socket}, ¥${cheapest.price})`);
-    return cheapest;
-}
+// 重複関数削除 - 統合された selectCompatibleMotherboard を使用
 
-// システムに適したPSUを選択
-function selectPSUForSystem(psus, cpu, gpu) {
-    if (!psus || psus.length === 0) return null;
-    
-    // 基本的な電力要件を計算（簡易版）
-    let requiredWattage = 400; // ベース消費電力
-    
-    if (cpu) {
-        // CPU名から大まかな消費電力を推定
-        if (cpu.name.toLowerCase().includes('i9') || cpu.name.toLowerCase().includes('ryzen 9')) {
-            requiredWattage += 150;
-        } else if (cpu.name.toLowerCase().includes('i7') || cpu.name.toLowerCase().includes('ryzen 7')) {
-            requiredWattage += 120;
-        } else {
-            requiredWattage += 100;
-        }
-    }
-    
-    if (gpu) {
-        // GPU名から大まかな消費電力を推定
-        const gpuName = gpu.name.toLowerCase();
-        if (gpuName.includes('5090') || gpuName.includes('5080')) {
-            requiredWattage += 400;
-        } else if (gpuName.includes('5070') || gpuName.includes('9070')) {
-            requiredWattage += 300;
-        } else if (gpuName.includes('5060') || gpuName.includes('9060')) {
-            requiredWattage += 200;
-        } else {
-            requiredWattage += 250; // デフォルト
-        }
-    }
-    
-    // 安全マージンを追加（20%）
-    requiredWattage = Math.ceil(requiredWattage * 1.2);
-    
-    console.log(`PSU要件: 最低${requiredWattage}W必要`);
-    
-    // 要件を満たすPSUの中から最安を選択
-    const suitablePSUs = psus.filter(psu => {
-        const wattage = parseInt(psu.wattage.replace('W', ''));
-        return wattage >= requiredWattage;
-    });
-    
-    if (suitablePSUs.length === 0) {
-        console.warn(`警告: ${requiredWattage}W以上のPSUが見つかりません。最大容量のPSUを選択します。`);
-        const maxPSU = psus.sort((a, b) => {
-            const aWatt = parseInt(a.wattage.replace('W', ''));
-            const bWatt = parseInt(b.wattage.replace('W', ''));
-            return bWatt - aWatt;
-        })[0];
-        console.log(`PSU選択: ${maxPSU.name} (${maxPSU.wattage}, ¥${maxPSU.price})`);
-        return maxPSU;
-    }
-    
-    // 適合するPSUの中から最安を選択
-    const cheapest = suitablePSUs.sort((a, b) => a.price - b.price)[0];
-    console.log(`PSU選択: ${cheapest.name} (${cheapest.wattage}, ¥${cheapest.price})`);
-    return cheapest;
-}
+// 重複関数削除 - 後方の高機能な selectPSUForSystem を使用
 
 // ストレージのアップグレード（同容量の高性能モデル）
 function upgradeStorage(currentStorage, allStorages, targetCapacity, budget) {
@@ -1077,6 +1005,32 @@ function parseCapacityToGB(capacityStr) {
 
 
 // メイン推奨機能 - プロのPCビルダーアシスタント版
+// OS選択とバジェット調整を処理
+function handleOSSelection(budget, includeOS, partsData) {
+    let effectiveBudget = budget;
+    let selectedOS = null;
+    
+    if (includeOS && partsData.os && partsData.os.length > 0) {
+        selectedOS = partsData.os[0]; // Windows 11 Home
+        effectiveBudget = budget - selectedOS.price;
+        console.log(`OS選択: ${selectedOS.name} (¥${selectedOS.price})`);
+        console.log(`有効予算: ¥${effectiveBudget} (OS価格¥${selectedOS.price}を差し引き)`);
+        
+        if (effectiveBudget <= 0) {
+            console.error('エラー: OS価格が予算を超過しています');
+            throw new Error('OS価格が予算を超過しています。予算を増やしてください。');
+        }
+        
+        // 最小構成予算チェック（概算）
+        const minimumRequired = 100000; // 最小構成の概算
+        if (effectiveBudget < minimumRequired) {
+            console.warn(`警告: 有効予算¥${effectiveBudget}は最小構成(約¥${minimumRequired})を下回る可能性があります`);
+        }
+    }
+    
+    return { effectiveBudget, selectedOS };
+}
+
 function getRecommendations(requirements) {
     const { budget, ram, storage, cpuBrand, gpuBrand, usage, includeOS } = requirements;
     const usageRec = getUsageRecommendations(usage);
@@ -1086,26 +1040,7 @@ function getRecommendations(requirements) {
         const partsData = PARTS_DATA;
         
         // OSを含める場合は、OS価格を事前に予算から差し引く
-        let effectiveBudget = budget;
-        let selectedOS = null;
-        
-        if (includeOS && partsData.os && partsData.os.length > 0) {
-            selectedOS = partsData.os[0]; // Windows 11 Home
-            effectiveBudget = budget - selectedOS.price;
-            console.log(`OS選択: ${selectedOS.name} (¥${selectedOS.price})`);
-            console.log(`有効予算: ¥${effectiveBudget} (OS価格¥${selectedOS.price}を差し引き)`);
-            
-            if (effectiveBudget <= 0) {
-                console.error('エラー: OS価格が予算を超過しています');
-                throw new Error('OS価格が予算を超過しています。予算を増やしてください。');
-            }
-            
-            // 最小構成予算チェック（概算）
-            const minimumRequired = 100000; // 最小構成の概算
-            if (effectiveBudget < minimumRequired) {
-                console.warn(`警告: 有効予算¥${effectiveBudget}は最小構成(約¥${minimumRequired})を下回る可能性があります`);
-            }
-        }
+        const { effectiveBudget, selectedOS } = handleOSSelection(budget, includeOS, partsData);
         
         // 【新方式: CPU・マザーボード以外を先に選択】
         console.log('新方式: CPU・マザーボード以外のパーツを先に選択');

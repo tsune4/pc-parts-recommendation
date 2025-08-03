@@ -143,39 +143,11 @@
             "formFactor": "MicroATX"
         },
         {
-            "name": "ASUS PRIME B760M-A D4",
-            "price": 10550,
-            "socket": "LGA1700",
-            "chipset": "B760",
-            "formFactor": "MicroATX"
-        },
-        {
-            "name": "ASRock B760 Pro RS/D4 WiFi (B760 1700 ATX) ドスパラ限定モデル",
-            "price": 11800,
-            "socket": "LGA1700",
-            "chipset": "B760",
-            "formFactor": "ATX"
-        },
-        {
             "name": "ASRock B760M Pro RS WiFi White (B760 1700 MicroATX) ドスパラ限定モデル",
             "price": 12800,
             "socket": "LGA1700",
             "chipset": "B760",
             "formFactor": "MicroATX"
-        },
-        {
-            "name": "ASUS TUF GAMING B760M-PLUS D4",
-            "price": 13980,
-            "socket": "LGA1700",
-            "chipset": "B760",
-            "formFactor": "MicroATX"
-        },
-        {
-            "name": "ASUS PRIME H610I-PLUS D4-CSM",
-            "price": 16990,
-            "socket": "LGA1700",
-            "chipset": "H610",
-            "formFactor": "Mini ITX"
         },
         {
             "name": "MSI PRO B860M-A WIFI",
