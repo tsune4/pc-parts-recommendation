@@ -1,8 +1,5 @@
 // Part Selection Module
-import { RecommendationConfig } from './recommendation-config.js';
-import { BrandDetector } from './brand-detector.js';
-
-export class PartSelector {
+class PartSelector {
     constructor() {
         this.brandDetector = new BrandDetector();
         this.parseCache = new Map();

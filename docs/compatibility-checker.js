@@ -1,8 +1,5 @@
 // Compatibility Checker Module
-import { RecommendationConfig } from './recommendation-config.js';
-import { BrandDetector } from './brand-detector.js';
-
-export class CompatibilityChecker {
+class CompatibilityChecker {
     constructor() {
         this.brandDetector = new BrandDetector();
         this.config = RecommendationConfig;

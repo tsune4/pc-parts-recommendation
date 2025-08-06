@@ -1,7 +1,5 @@
 // Brand Detection Module
-import { RecommendationConfig } from './recommendation-config.js';
-
-export class BrandDetector {
+class BrandDetector {
     constructor() {
         this.cache = new Map();
         this.cpuKeywords = RecommendationConfig.BRAND_KEYWORDS.CPU;

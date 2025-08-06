@@ -1,5 +1,5 @@
 // PC Parts Recommendation System Configuration
-export const RecommendationConfig = {
+const RecommendationConfig = {
     // 用途別の重み設定
     USAGE_WEIGHTS: {
         gaming: {

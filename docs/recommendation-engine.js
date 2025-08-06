@@ -1,10 +1,5 @@
 // Main Recommendation Engine
-import { RecommendationConfig } from './recommendation-config.js';
-import { BrandDetector } from './brand-detector.js';
-import { PartSelector } from './part-selector.js';
-import { CompatibilityChecker } from './compatibility-checker.js';
-
-export class RecommendationEngine {
+class RecommendationEngine {
     constructor() {
         this.config = RecommendationConfig;
         this.brandDetector = new BrandDetector();
