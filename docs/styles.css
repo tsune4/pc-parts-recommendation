@@ -244,16 +244,45 @@ header p {
     border-radius: 20px;
     font-weight: 600;
     font-size: 0.9em;
+    transition: all 0.3s ease;
+    animation: statusFadeIn 0.5s ease-out;
+}
+
+@keyframes statusFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .status.within-budget {
-    background: #d4edda;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
     color: #155724;
+    border: 2px solid #b8dabc;
+    box-shadow: 0 2px 8px rgba(21, 87, 36, 0.15);
+}
+
+.status.within-budget:hover {
+    background: linear-gradient(135deg, #c3e6cb 0%, #b8dabc 100%);
+    box-shadow: 0 4px 12px rgba(21, 87, 36, 0.25);
+    transform: translateY(-1px);
 }
 
 .status.over-budget {
-    background: #f8d7da;
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
     color: #721c24;
+    border: 2px solid #f1b0b7;
+    box-shadow: 0 2px 8px rgba(114, 28, 36, 0.15);
+}
+
+.status.over-budget:hover {
+    background: linear-gradient(135deg, #f5c6cb 0%, #f1b0b7 100%);
+    box-shadow: 0 4px 12px rgba(114, 28, 36, 0.25);
+    transform: translateY(-1px);
 }
 
 /* パーツテーブル */

@@ -12,7 +12,7 @@ A web application that suggests optimal PC part configurations based on budget a
 
 ## ✨ 機能 / Features
 
-- 💰 **予算別推奨**: 12万円〜100万円の予算に対応
+- 💰 **予算別推奨**: 12.5万円〜100万円の予算に対応
 - 🎮 **用途別最適化**: ゲーミング、クリエイティブ、オフィス、開発用途
 - 🔧 **GPUブランド選択**: NVIDIA・AMD選択可能
 - 📊 **予算最適化**: 余った予算でのパーツ自動アップグレード

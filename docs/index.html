@@ -29,7 +29,7 @@
                 <form id="recommendation-form">
                     <div class="form-group">
                         <label for="budget">総予算（円）</label>
-                        <input type="number" id="budget" name="budget" min="120000" max="1000000" step="5000" value="120000" required>
+                        <input type="number" id="budget" name="budget" min="125000" max="1000000" step="5000" value="125000" required>
                     </div>
 
                     <div class="form-group">
@@ -136,9 +136,16 @@
         </main>
     </div>
 
+    <!-- Core Data -->
     <script src="parts-data.js?v=3.1"></script>
     <script src="translations.js?v=3.1"></script>
-    <script src="pc-recommender.js?v=3.1"></script>
-    <script src="script.js?v=3.1"></script>
+    
+    <!-- Refactored Modules -->
+    <script src="error-handler.js?v=4.0"></script>
+    <script src="performance-optimizer.js?v=4.0"></script>
+    <script src="pc-recommender-new.js?v=4.0"></script>
+    <script src="dom-manager.js?v=4.0"></script>
+    <script src="translation-manager.js?v=4.0"></script>
+    <script src="script-refactored.js?v=4.0"></script>
 </body>
 </html>
