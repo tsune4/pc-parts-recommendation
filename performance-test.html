@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC推奨システム - パフォーマンステスト</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 20px; 
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            color: #2c3e50; 
+            text-align: center; 
+            margin-bottom: 30px; 
+            font-size: 2.2em;
+        }
+        .test-section { 
+            background: #f8f9fa; 
+            padding: 20px; 
+            margin: 20px 0; 
+            border-radius: 8px; 
+            border-left: 4px solid #007bff; 
+        }
+        .test-controls { 
+            display: flex; 
+            gap: 15px; 
+            margin: 15px 0; 
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .test-btn { 
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); 
+            color: white; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .test-btn:hover { 
+            background: linear-gradient(135deg, #0056b3 0%, #004085 100%); 
+            transform: translateY(-2px);
+        }
+        .test-btn:disabled { 
+            background: #6c757d; 
+            cursor: not-allowed; 
+            transform: none;
+        }
+        .results { 
+            background: #e9f7ef; 
+            padding: 15px; 
+            border-radius: 6px; 
+            margin: 15px 0; 
+            border: 1px solid #d1ecf1; 
+        }
+        .performance-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 15px 0; 
+        }
+        .performance-table th, .performance-table td { 
+            border: 1px solid #dee2e6; 
+            padding: 12px; 
+            text-align: left; 
+        }
+        .performance-table th { 
+            background: #495057; 
+            color: white; 
+            font-weight: 600;
+        }
+        .performance-table tr:nth-child(even) { 
+            background: #f8f9fa; 
+        }
+        .metric { 
+            display: inline-block; 
+            margin: 8px 15px 8px 0; 
+            padding: 6px 12px; 
+            background: #e3f2fd; 
+            border-radius: 20px; 
+            color: #1565c0;
+            font-weight: 500;
+        }
+        .metric.good { background: #e8f5e8; color: #2e7d32; }
+        .metric.warning { background: #fff3e0; color: #f57c00; }
+        .metric.error { background: #ffebee; color: #c62828; }
+        .console-output { 
+            background: #000; 
+            color: #00ff00; 
+            padding: 15px; 
+            border-radius: 6px; 
+            font-family: 'Consolas', 'Monaco', monospace; 
+            font-size: 12px; 
+            max-height: 400px; 
+            overflow-y: auto; 
+            white-space: pre-wrap;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 パフォーマンステスト - PC推奨システム</h1>
+        
+        <div class="test-section">
+            <h2>📊 基本パフォーマンステスト</h2>
+            <div class="test-controls">
+                <button class="test-btn" onclick="runBasicPerformanceTest()">基本処理速度テスト</button>
+                <button class="test-btn" onclick="runScalabilityTest()">スケーラビリティテスト</button>
+                <button class="test-btn" onclick="runMemoryTest()">メモリ使用量テスト</button>
+                <button class="test-btn" onclick="runCacheEfficiencyTest()">キャッシュ効率テスト</button>
+            </div>
+            <div class="progress-bar" id="progress-bar" style="display: none;">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div id="basic-results" class="results" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔬 詳細パフォーマンス分析</h2>
+            <div class="test-controls">
+                <button class="test-btn" onclick="runDetailedAnalysis()">詳細分析実行</button>
+                <button class="test-btn" onclick="runComparisonTest()">改善前後比較</button>
+                <button class="test-btn" onclick="runBenchmarkSuite()">総合ベンチマーク</button>
+            </div>
+            <div id="detailed-results" class="results" style="display: none;">
+                <table class="performance-table" id="performance-table">
+                    <thead>
+                        <tr>
+                            <th>テスト項目</th>
+                            <th>処理時間 (ms)</th>
+                            <th>メモリ使用量 (MB)</th>
+                            <th>スループット (ops/sec)</th>
+                            <th>評価</th>
+                        </tr>
+                    </thead>
+                    <tbody id="performance-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📈 リアルタイム監視</h2>
+            <div class="test-controls">
+                <button class="test-btn" onclick="startRealTimeMonitoring()">監視開始</button>
+                <button class="test-btn" onclick="stopRealTimeMonitoring()">監視停止</button>
+                <button class="test-btn" onclick="clearLog()">ログクリア</button>
+            </div>
+            <div class="console-output" id="console-log">
+                <div>パフォーマンス監視ログがここに表示されます...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="recommendation-config.js"></script>
+    <script src="brand-detector.js"></script>
+    <script src="part-selector.js"></script>
+    <script src="compatibility-checker.js"></script>
+    <script src="performance-optimizer.js"></script>
+    <script src="pc-recommender-new.js"></script>
+    
+    <script>
+        let monitoringInterval = null;
+        let performanceMetrics = {
+            recommendations: [],
+            cacheHits: 0,
+            cacheMisses: 0,
+            totalOperations: 0
+        };
+
+        // コンソールログキャプチャ
+        const originalLog = console.log;
+        const logDiv = document.getElementById('console-log');
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const logLine = document.createElement('div');
+            logLine.innerHTML = `<span style="color: #888">[${new Date().toLocaleTimeString()}]</span> ${message}`;
+            logDiv.appendChild(logLine);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        };
+
+        // テスト用のダミーパーツデータ生成
+        function generateTestData(size) {
+            const categories = ['cpu', 'gpu', 'memory', 'storage', 'motherboard'];
+            const brands = {
+                cpu: ['intel', 'amd'],
+                gpu: ['nvidia', 'amd'],
+                memory: ['corsair', 'g.skill', 'crucial'],
+                storage: ['samsung', 'western digital', 'seagate'],
+                motherboard: ['asus', 'msi', 'gigabyte']
+            };
+
+            const testData = {};
+            
+            categories.forEach(category => {
+                testData[category] = [];
+                for (let i = 0; i < size; i++) {
+                    const brand = brands[category][i % brands[category].length];
+                    testData[category].push({
+                        name: `${brand} ${category} model ${i + 1}`,
+                        price: Math.floor(Math.random() * 100000) + 10000,
+                        brand: brand,
+                        memory: category === 'gpu' ? `${4 + (i % 3) * 4}GB` : undefined,
+                        capacity: category === 'memory' ? `${16 * (i % 4 + 1)}GB` : 
+                                 category === 'storage' ? `${500 * (i % 4 + 1)}GB` : undefined,
+                        socket: category === 'cpu' || category === 'motherboard' ? 
+                               ['Socket AM5', 'LGA1700'][i % 2] : undefined,
+                        type: category === 'memory' ? 'DDR5' : 
+                              category === 'storage' ? 'SSD' : undefined
+                    });
+                }
+            });
+            
+            return testData;
+        }
+
+        function updateProgress(percentage) {
+            const progressBar = document.getElementById('progress-bar');
+            const progressFill = document.getElementById('progress-fill');
+            
+            if (percentage === 0) {
+                progressBar.style.display = 'none';
+            } else {
+                progressBar.style.display = 'block';
+                progressFill.style.width = percentage + '%';
+            }
+        }
+
+        async function runBasicPerformanceTest() {
+            console.log('🚀 基本パフォーマンステスト開始');
+            updateProgress(0);
+            
+            const engine = new RecommendationEngine();
+            const testData = generateTestData(1000);
+            const results = [];
+            
+            const testCases = [
+                { budget: 150000, usage: 'gaming', description: 'ゲーミング構成' },
+                { budget: 200000, usage: 'tarkov', description: 'Tarkov最適化' },
+                { budget: 300000, usage: 'vrchat', description: 'VRChat高VRAM' }
+            ];
+
+            for (let i = 0; i < testCases.length; i++) {
+                const testCase = testCases[i];
+                updateProgress((i + 1) / testCases.length * 50);
+                
+                const startTime = performance.now();
+                const recommendations = engine.recommendParts(testData, {
+                    budget: testCase.budget,
+                    usage: testCase.usage,
+                    ram: '32GB',
+                    storage: { capacity: '1TB' },
+                    cpuBrand: 'any',
+                    gpuBrand: 'any'
+                });
+                const endTime = performance.now();
+                
+                const executionTime = endTime - startTime;
+                results.push({
+                    testCase: testCase.description,
+                    time: executionTime.toFixed(2),
+                    budget: testCase.budget,
+                    success: recommendations && Object.keys(recommendations.recommendations).length > 0
+                });
+                
+                console.log(`✅ ${testCase.description}: ${executionTime.toFixed(2)}ms`);
+            }
+            
+            updateProgress(100);
+            setTimeout(() => updateProgress(0), 2000);
+            
+            displayBasicResults(results);
+        }
+
+        async function runScalabilityTest() {
+            console.log('📈 スケーラビリティテスト開始');
+            updateProgress(0);
+            
+            const engine = new RecommendationEngine();
+            const dataSizes = [100, 500, 1000, 2000, 5000];
+            const results = [];
+            
+            for (let i = 0; i < dataSizes.length; i++) {
+                const size = dataSizes[i];
+                updateProgress((i + 1) / dataSizes.length * 100);
+                
+                const testData = generateTestData(size);
+                const startTime = performance.now();
+                
+                const recommendations = engine.recommendParts(testData, {
+                    budget: 200000,
+                    usage: 'gaming',
+                    ram: '16GB',
+                    storage: { capacity: '1TB' },
+                    cpuBrand: 'any',
+                    gpuBrand: 'any'
+                });
+                
+                const endTime = performance.now();
+                const executionTime = endTime - startTime;
+                
+                results.push({
+                    dataSize: size,
+                    time: executionTime.toFixed(2),
+                    throughput: (size / (executionTime / 1000)).toFixed(0)
+                });
+                
+                console.log(`📊 データサイズ ${size}: ${executionTime.toFixed(2)}ms (${(size / (executionTime / 1000)).toFixed(0)} parts/sec)`);
+            }
+            
+            updateProgress(0);
+            displayScalabilityResults(results);
+        }
+
+        async function runMemoryTest() {
+            console.log('💾 メモリ使用量テスト開始');
+            
+            if (typeof performance.measureUserAgentSpecificMemory === 'undefined') {
+                console.log('⚠️ メモリ測定API未対応のため推定値を表示');
+                
+                const engine = new RecommendationEngine();
+                const testData = generateTestData(1000);
+                
+                // 推定メモリ使用量計算
+                const estimatedMemory = {
+                    testData: JSON.stringify(testData).length / 1024 / 1024,
+                    caches: (engine.partSelector.sortedPartsCache.size + 
+                            engine.partSelector.brandIndexCache.size +
+                            engine.partSelector.metadataCache.size) * 0.1
+                };
+                
+                console.log(`📊 推定メモリ使用量:`);
+                console.log(`  - テストデータ: ${estimatedMemory.testData.toFixed(2)} MB`);
+                console.log(`  - キャッシュ: ${estimatedMemory.caches.toFixed(2)} MB`);
+                console.log(`  - 合計: ${(estimatedMemory.testData + estimatedMemory.caches).toFixed(2)} MB`);
+            }
+        }
+
+        async function runCacheEfficiencyTest() {
+            console.log('⚡ キャッシュ効率テスト開始');
+            updateProgress(0);
+            
+            const engine = new RecommendationEngine();
+            const testData = generateTestData(1000);
+            
+            // キャッシュクリア
+            engine.partSelector.clearCache();
+            
+            const iterations = 10;
+            let totalColdTime = 0;
+            let totalWarmTime = 0;
+            
+            for (let i = 0; i < iterations; i++) {
+                updateProgress((i + 1) / iterations * 50);
+                
+                // コールドスタート（キャッシュなし）
+                engine.partSelector.clearCache();
+                const coldStart = performance.now();
+                engine.recommendParts(testData, {
+                    budget: 200000,
+                    usage: 'gaming',
+                    ram: '16GB',
+                    storage: { capacity: '1TB' },
+                    cpuBrand: 'any',
+                    gpuBrand: 'any'
+                });
+                const coldEnd = performance.now();
+                totalColdTime += (coldEnd - coldStart);
+                
+                // ウォームスタート（キャッシュあり）
+                const warmStart = performance.now();
+                engine.recommendParts(testData, {
+                    budget: 200000,
+                    usage: 'gaming',
+                    ram: '16GB',
+                    storage: { capacity: '1TB' },
+                    cpuBrand: 'any',
+                    gpuBrand: 'any'
+                });
+                const warmEnd = performance.now();
+                totalWarmTime += (warmEnd - warmStart);
+            }
+            
+            const avgColdTime = totalColdTime / iterations;
+            const avgWarmTime = totalWarmTime / iterations;
+            const improvement = ((avgColdTime - avgWarmTime) / avgColdTime * 100);
+            
+            updateProgress(100);
+            setTimeout(() => updateProgress(0), 2000);
+            
+            console.log(`🎯 キャッシュ効率結果:`);
+            console.log(`  - コールドスタート平均: ${avgColdTime.toFixed(2)}ms`);
+            console.log(`  - ウォームスタート平均: ${avgWarmTime.toFixed(2)}ms`);
+            console.log(`  - パフォーマンス向上: ${improvement.toFixed(1)}%`);
+            
+            displayCacheResults({
+                coldTime: avgColdTime.toFixed(2),
+                warmTime: avgWarmTime.toFixed(2),
+                improvement: improvement.toFixed(1)
+            });
+        }
+
+        function displayBasicResults(results) {
+            const resultsDiv = document.getElementById('basic-results');
+            let html = '<h3>🎯 基本パフォーマンステスト結果</h3>';
+            
+            results.forEach(result => {
+                const statusClass = result.success ? 'good' : 'error';
+                html += `<div class="metric ${statusClass}">
+                    ${result.testCase}: ${result.time}ms (¥${result.budget.toLocaleString()})
+                </div>`;
+            });
+            
+            const avgTime = results.reduce((sum, r) => sum + parseFloat(r.time), 0) / results.length;
+            const performanceRating = avgTime < 50 ? 'excellent' : avgTime < 100 ? 'good' : 'needs improvement';
+            
+            html += `<div class="metric ${avgTime < 50 ? 'good' : avgTime < 100 ? 'warning' : 'error'}">
+                平均処理時間: ${avgTime.toFixed(2)}ms (${performanceRating})
+            </div>`;
+            
+            resultsDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+
+        function displayScalabilityResults(results) {
+            const resultsDiv = document.getElementById('basic-results');
+            let html = '<h3>📈 スケーラビリティテスト結果</h3>';
+            
+            results.forEach(result => {
+                const throughputClass = parseFloat(result.throughput) > 1000 ? 'good' : 
+                                      parseFloat(result.throughput) > 500 ? 'warning' : 'error';
+                html += `<div class="metric ${throughputClass}">
+                    ${result.dataSize}件: ${result.time}ms (${result.throughput} parts/sec)
+                </div>`;
+            });
+            
+            resultsDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+
+        function displayCacheResults(results) {
+            const resultsDiv = document.getElementById('basic-results');
+            const improvementClass = parseFloat(results.improvement) > 50 ? 'good' : 
+                                   parseFloat(results.improvement) > 25 ? 'warning' : 'error';
+            
+            const html = `
+                <h3>⚡ キャッシュ効率テスト結果</h3>
+                <div class="metric">コールドスタート: ${results.coldTime}ms</div>
+                <div class="metric">ウォームスタート: ${results.warmTime}ms</div>
+                <div class="metric ${improvementClass}">改善率: ${results.improvement}%</div>
+            `;
+            
+            resultsDiv.innerHTML = html;
+            resultsDiv.style.display = 'block';
+        }
+
+        function startRealTimeMonitoring() {
+            if (monitoringInterval) return;
+            
+            console.log('🔄 リアルタイム監視開始');
+            
+            monitoringInterval = setInterval(() => {
+                const engine = new RecommendationEngine();
+                const memoryUsage = performance.memory ? 
+                    (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(2) : 'N/A';
+                
+                const cacheStats = {
+                    sorted: engine.partSelector.sortedPartsCache.size,
+                    brand: engine.partSelector.brandIndexCache.size,
+                    metadata: engine.partSelector.metadataCache.size
+                };
+                
+                console.log(`📊 [監視] メモリ: ${memoryUsage}MB | キャッシュ: S${cacheStats.sorted} B${cacheStats.brand} M${cacheStats.metadata}`);
+            }, 2000);
+        }
+
+        function stopRealTimeMonitoring() {
+            if (monitoringInterval) {
+                clearInterval(monitoringInterval);
+                monitoringInterval = null;
+                console.log('⏹️ リアルタイム監視停止');
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('console-log').innerHTML = 
+                '<div>パフォーマンス監視ログがクリアされました...</div>';
+        }
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎯 パフォーマンステストシステム初期化完了');
+            console.log('💡 各テストボタンを押してパフォーマンスを確認してください');
+        });
+    </script>
+</body>
+</html>
